@@ -1,0 +1,29 @@
+                             OLS Regression Results                            
+===============================================================================
+Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared:                       0.228
+Model:                             OLS   Adj. R-squared:                  0.220
+Method:                  Least Squares   F-statistic:                     30.98
+Date:                 Tue, 24 Oct 2023   Prob (F-statistic):           1.62e-12
+Time:                         20:03:39   Log-Likelihood:                -238.16
+No. Observations:                  213   AIC:                             482.3
+Df Residuals:                      210   BIC:                             492.4
+Df Model:                            2                                         
+Covariance Type:             nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          2.8064      0.143     19.601      0.000       2.524       3.089
+EXIS_INIC     -0.0007      0.000     -4.349      0.000      -0.001      -0.000
+IMPORTS        0.0541      0.008      6.866      0.000       0.039       0.070
+==============================================================================
+Omnibus:                       53.863   Durbin-Watson:                   0.187
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              115.851
+Skew:                           1.188   Prob(JB):                     6.97e-26
+Kurtosis:                       5.722   Cond. No.                     2.18e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 2.18e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
+The 1st Date considered is: 2005-10-01 00:00:00 and the columns with more null values are: {'VIRGEN_EXTRA_EUR_kg': Timestamp('2005-10-01 00:00:00'), 'EXIS_INIC': Timestamp('2005-10-01 00:00:00'), 'IMPORTS': Timestamp('2005-10-01 00:00:00')}

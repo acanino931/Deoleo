@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="1st_push">
+      <change afterPath="$PROJECT_DIR$/.idea/Deoleo.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Datos/exogenas_v2.xlsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/Basic_Model.docx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/Correlacion_Observatorio_Andalucia.docx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_1_original_2005_data.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_2df.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_3_original_2005_data.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Document/~$mple_with_pycharm.docx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Regression_model_v3.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/prova.xlsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sample_with_pycharm.docx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sample_with_pycharm_1.docx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hedging.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modelization_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/plot_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/preprocessing_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/weather_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/values.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/main.py" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2WwhAsIs5zzwFzhZ0rGdqf0MQMv" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/acanino/PycharmProjects/Deoleo_git&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Python&quot;,
+      &quot;GitIgnore&quot;
+    ]
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\acanino\PycharmProjects\Deoleo\src" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Deoleo" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\acanino\PycharmProjects\Deoleo\venv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="" />
+      <created>1697649409725</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1697649409725</updated>
+    </task>
+    <task id="LOCAL-00001" summary="1st_push">
+      <created>1698230433856</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1698230433856</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="1st_push" />
+    <option name="LAST_COMMIT_MESSAGE" value="1st_push" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/importing_data.py</url>
+          <line>26</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

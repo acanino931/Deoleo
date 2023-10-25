@@ -1,0 +1,32 @@
+                             OLS Regression Results                            
+===============================================================================
+Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared:                       0.297
+Model:                             OLS   Adj. R-squared:                  0.280
+Method:                  Least Squares   F-statistic:                     17.53
+Date:                 Wed, 25 Oct 2023   Prob (F-statistic):           1.83e-14
+Time:                         11:53:13   Log-Likelihood:                -228.10
+No. Observations:                  213   AIC:                             468.2
+Df Residuals:                      207   BIC:                             488.4
+Df Model:                            5                                         
+Covariance Type:             nonrobust                                         
+======================================================================================
+                         coef    std err          t      P>|t|      [0.025      0.975]
+--------------------------------------------------------------------------------------
+const                  3.4871      0.226     15.414      0.000       3.041       3.933
+EXIS_INIC             -0.0006      0.000     -3.255      0.001      -0.001      -0.000
+IMPORTS                0.0613      0.009      7.177      0.000       0.044       0.078
+EXPORTS               -0.0073      0.003     -2.098      0.037      -0.014      -0.000
+PRODUCTION            -0.0009      0.000     -2.838      0.005      -0.002      -0.000
+PRODUCTION_HARVEST    -0.0002      0.000     -0.832      0.406      -0.001       0.000
+==============================================================================
+Omnibus:                       41.748   Durbin-Watson:                   0.224
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               73.037
+Skew:                           1.017   Prob(JB):                     1.38e-16
+Kurtosis:                       5.023   Cond. No.                     6.88e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 6.88e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
+The 1st Date considered is: 2005-10-01 00:00:00 and the columns with more null values are: {'VIRGEN_EXTRA_EUR_kg': Timestamp('2005-10-01 00:00:00'), 'EXIS_INIC': Timestamp('2005-10-01 00:00:00'), 'IMPORTS': Timestamp('2005-10-01 00:00:00'), 'EXPORTS': Timestamp('2005-10-01 00:00:00'), 'PRODUCTION': Timestamp('2005-10-01 00:00:00'), 'PRODUCTION_HARVEST': Timestamp('2005-10-01 00:00:00')}

@@ -1,0 +1,28 @@
+                                 OLS Regression Results                                 
+========================================================================================
+Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared (uncentered):                   0.866
+Model:                             OLS   Adj. R-squared (uncentered):              0.864
+Method:                  Least Squares   F-statistic:                              411.1
+Date:                 Tue, 24 Oct 2023   Prob (F-statistic):                   1.27e-109
+Time:                         16:04:18   Log-Likelihood:                         -377.94
+No. Observations:                  258   AIC:                                      763.9
+Df Residuals:                      254   BIC:                                      778.1
+Df Model:                            4                                                  
+Covariance Type:             nonrobust                                                  
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+EXIS_INIC      0.0003      0.000      1.235      0.218      -0.000       0.001
+IMPORTS        0.0704      0.011      6.404      0.000       0.049       0.092
+EXPORTS        0.0253      0.003      8.947      0.000       0.020       0.031
+PRODUCTION     0.0004      0.000      1.021      0.308      -0.000       0.001
+==============================================================================
+Omnibus:                        8.305   Durbin-Watson:                   0.201
+Prob(Omnibus):                  0.016   Jarque-Bera (JB):               13.500
+Skew:                           0.138   Prob(JB):                      0.00117
+Kurtosis:                       4.086   Cond. No.                         129.
+==============================================================================
+
+Notes:
+[1] R² is computed without centering (uncentered) since the model does not contain a constant.
+[2] Standard Errors assume that the covariance matrix of the errors is correctly specified.

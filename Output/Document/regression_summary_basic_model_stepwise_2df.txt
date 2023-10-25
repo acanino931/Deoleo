@@ -1,0 +1,27 @@
+                                 OLS Regression Results                                 
+========================================================================================
+Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared (uncentered):                   0.865
+Model:                             OLS   Adj. R-squared (uncentered):              0.864
+Method:                  Least Squares   F-statistic:                              820.2
+Date:                 Tue, 24 Oct 2023   Prob (F-statistic):                   4.78e-112
+Time:                         17:02:40   Log-Likelihood:                         -379.08
+No. Observations:                  258   AIC:                                      762.2
+Df Residuals:                      256   BIC:                                      769.3
+Df Model:                            2                                                  
+Covariance Type:             nonrobust                                                  
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+IMPORTS        0.0727      0.011      6.723      0.000       0.051       0.094
+EXPORTS        0.0284      0.002     16.831      0.000       0.025       0.032
+==============================================================================
+Omnibus:                        8.579   Durbin-Watson:                   0.223
+Prob(Omnibus):                  0.014   Jarque-Bera (JB):               15.180
+Skew:                           0.087   Prob(JB):                     0.000505
+Kurtosis:                       4.175   Cond. No.                         11.6
+==============================================================================
+
+Notes:
+[1] R² is computed without centering (uncentered) since the model does not contain a constant.
+[2] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+The 1st Date considered is: 2002-01-01 00:00:00 and the columns with more null values are: {'VIRGEN_EXTRA_EUR_kg': Timestamp('2002-01-01 00:00:00'), 'EXIS_INIC': Timestamp('2002-01-01 00:00:00'), 'IMPORTS': Timestamp('2002-01-01 00:00:00'), 'EXPORTS': Timestamp('2002-01-01 00:00:00'), 'PRODUCTION': Timestamp('2002-01-01 00:00:00')}
