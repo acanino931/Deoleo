@@ -99,9 +99,9 @@ if __name__ == '__main__':
 
     basic_model_df_bck = basic_model_df[col_selected].copy()
     len(basic_model_df_bck['VIRGEN_EXTRA_EUR_kg'])
-    df_pred, MSFE,MAPE = rf.back_testing_actual_time(basic_model_df_bck,50, 24, 'VIRGEN_EXTRA_EUR_kg') # montly model 50 obs out # 24 horizons previewd
-    df_pred.columns
-    MAPE[0]
+    #df_pred, MSFE,MAPE = rf.back_testing_actual_time(basic_model_df_bck,50, 24, 'VIRGEN_EXTRA_EUR_kg') # montly model 50 obs out # 24 horizons previewd
+    #df_pred.columns
+    #MAPE[0]
 
     print_doc_descriptive_vars(basic_model_df,'VIRGEN_EXTRA_EUR_kg',24)
     gf.plot_correlation_matrix(basic_model_df)
