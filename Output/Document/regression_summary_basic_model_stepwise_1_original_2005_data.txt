@@ -4,7 +4,7 @@ Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared:                       0.297
 Model:                             OLS   Adj. R-squared:                  0.280
 Method:                  Least Squares   F-statistic:                     17.53
 Date:                 Wed, 25 Oct 2023   Prob (F-statistic):           1.83e-14
-Time:                         11:53:13   Log-Likelihood:                -228.10
+Time:                         18:56:46   Log-Likelihood:                -228.10
 No. Observations:                  213   AIC:                             468.2
 Df Residuals:                      207   BIC:                             488.4
 Df Model:                            5                                         

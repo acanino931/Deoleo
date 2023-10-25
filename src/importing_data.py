@@ -234,7 +234,7 @@ def load_data():
         all_timestamps = pd.DataFrame({'Timestamp': pd.date_range(start='2010-01-01', end='2023-06-22')})
         # Replace 'OLD_NEXUS/Reikon_commodities.xlsx' with the path to your Excel file
         all_timestamps['Timestamp'] = pd.to_datetime(all_timestamps['Timestamp'])
-        excel_file = 'OLD_NEXUS/Reikon_commodities.xlsx'
+        excel_file = 'Datos/Reikon_commodities.xlsx'
 
         # Define the list of sheet names you want to read
         sheet_names_to_read = ['EUA', 'BRENT', 'API2', 'TTF', 'MIBGAS PVB']

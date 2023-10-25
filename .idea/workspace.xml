@@ -1,36 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="1st_push">
-      <change afterPath="$PROJECT_DIR$/.idea/Deoleo.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Datos/exogenas_v2.xlsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/Basic_Model.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/Correlacion_Observatorio_Andalucia.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_1_original_2005_data.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_2df.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_3_original_2005_data.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Document/~$mple_with_pycharm.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Regression_model_v3.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/prova.xlsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sample_with_pycharm.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sample_with_pycharm_1.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hedging.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/modelization_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/plot_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/preprocessing_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/weather_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/values.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" afterDir="false" />
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="2st_push">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_1_original_2005_data.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_1_original_2005_data.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Document/~$mple_with_pycharm.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +42,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/acanino/PycharmProjects/Deoleo_git&quot;
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/acanino/PycharmProjects/Deoleo&quot;
   },
   &quot;keyToStringList&quot;: {
     &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
@@ -116,7 +95,28 @@
       <option name="project" value="LOCAL" />
       <updated>1698230433856</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="2st_push">
+      <created>1698233442178</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1698233442178</updated>
+    </task>
+    <task id="LOCAL-00003" summary="2st_push">
+      <created>1698233460222</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1698233460222</updated>
+    </task>
+    <task id="LOCAL-00004" summary="2st_push">
+      <created>1698233486324</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1698233486324</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -130,7 +130,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="main" />
+                        <option value="origin/main" />
                       </list>
                     </value>
                   </entry>
@@ -144,7 +144,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="1st_push" />
-    <option name="LAST_COMMIT_MESSAGE" value="1st_push" />
+    <MESSAGE value="2st_push" />
+    <option name="LAST_COMMIT_MESSAGE" value="2st_push" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -87,6 +87,9 @@ def back_testing_actual_time( df,test_sample,horizontes, target_variable = 'VIRG
     # this function has the simple regression model build another function for the Sarimax.
     y = df[target_variable].copy()
     X = df.drop(columns = [target_variable])
+    X = sm.add_constant(X)
+
+
     long = len(y)
     n_estimation = len(y) - test_sample
     real = y[(n_estimation):len(y)]
@@ -101,14 +104,18 @@ def back_testing_actual_time( df,test_sample,horizontes, target_variable = 'VIRG
         for i in range(0, n_forecasting):
             aux_y = y[0:(n_estimation - Periods_ahead + i)]
             aux_x = X[0:(n_estimation - Periods_ahead + i)]
-            model = sm.OLS(y, X).fit()
+            model = sm.OLS(aux_y, aux_x).fit()
             X_forecast = X[n_estimation + i - Periods_ahead:n_estimation + i + 1]
-            y_pred = model.predict(Periods_ahead + 1, exog=X_forecast)
-            predicc[Periods_ahead][i] = (y_pred.iloc[0])
+
+            y_pred = model.predict( exog=X_forecast)
+            predicc[Periods_ahead][i] = y_pred.iloc[0]
+           # print(f"periods_ahead{Periods_ahead} ")
+           # print(y_pred.iloc[0])
 
         error = np.array(real) - predicc[Periods_ahead]
         MSFE[Periods_ahead] = np.mean(error ** 2)
         MAPE[Periods_ahead] = np.mean(np.abs(error / np.array(real))) * 100
+
     data_pred = {}
     for i in range (n_forecasting):
         column_name = f"Prediction_{i}"
@@ -123,4 +130,45 @@ def back_testing_actual_time( df,test_sample,horizontes, target_variable = 'VIRG
   #  df_pred = pd.DataFrame({"V1": predicc[0]})
 
 
+def back_testing_actual_time_try(df, test_sample, horizontes, target_variable='VIRGEN_EXTRA_EUR_kg'):
+    y = df[target_variable].copy()
+    X = df.drop(columns=[target_variable])
+    X = sm.add_constant(X)
 
+    long = len(y)
+    n_estimation = len(y) - test_sample
+    real = y[n_estimation:]
+
+    n_forecasting = long - n_estimation
+
+    predicc = np.zeros((horizontes, n_forecasting))
+    MSFE = np.zeros(horizontes)
+    MAPE = np.zeros(horizontes)
+
+    for Periods_ahead in range(horizontes):
+        for i in range(0, n_forecasting):
+            aux_y = y[:n_estimation - Periods_ahead + i]
+            aux_x = X[:n_estimation - Periods_ahead + i]
+            model = sm.OLS(aux_y, aux_x).fit()
+            X_forecast = X[n_estimation + i - Periods_ahead:n_estimation + i + 1]
+
+            y_pred = model.predict(exog=X_forecast)
+            predicc[Periods_ahead][i] = y_pred.iloc[Periods_ahead]
+
+        # Convert 'real' to a NumPy array before calculating MAPE and MSFE
+        real_np = np.array(real)
+
+        # Calculate MAPE for all periods up to the current one
+        error = real_np - predicc[:(Periods_ahead + 1)]
+        MAPE[Periods_ahead] = np.mean(np.abs(error / real_np)) * 100
+
+        # Calculate MSFE for all periods up to the current one
+        MSFE[Periods_ahead] = np.mean(error ** 2)
+
+    data_pred = {}
+    for i in range(n_forecasting):
+        column_name = f"Prediction_{i}"
+        data_pred[column_name] = predicc[:, i]
+    df_pred = pd.DataFrame(data_pred)
+
+    return df_pred, MSFE, MAPE
