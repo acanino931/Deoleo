@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="Back_testing_ols_doube_function">
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="basic_model_done">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Document/Basic_Model.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/Basic_Model.docx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_1_original_2005_data.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_1_original_2005_data.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/graphic_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +117,21 @@
       <option name="project" value="LOCAL" />
       <updated>1698253141943</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="basic_model_done">
+      <created>1698400871793</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1698400871793</updated>
+    </task>
+    <task id="LOCAL-00007" summary="basic_model_done">
+      <created>1698401044562</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1698401044562</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -139,7 +145,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="origin/main" />
+                        <option value="main" />
                       </list>
                     </value>
                   </entry>
@@ -155,7 +161,8 @@
     <MESSAGE value="1st_push" />
     <MESSAGE value="2st_push" />
     <MESSAGE value="Back_testing_ols_doube_function" />
-    <option name="LAST_COMMIT_MESSAGE" value="Back_testing_ols_doube_function" />
+    <MESSAGE value="basic_model_done" />
+    <option name="LAST_COMMIT_MESSAGE" value="basic_model_done" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -11,8 +11,9 @@ from src import Regression_Functions as rf
 import numpy as np
 import statsmodels.api as sm
 
-
+import tabula
 import importlib # code to reload  lib
+from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
 importlib.reload(rf)  # Reload the module # code to reload  lib
 
@@ -64,20 +65,87 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    import pdfplumbe
-    import pandas as pd
 
-    pdf = pdfplumber.open("Datos/PDF/Juan_Vilar/Importacion Total.pdf")
-    page = pdf.pages[0]
-    table = page.extract_table()
-    df = pd.DataFrame(table[1:], columns=table[0])
-    pdf.close()
-    df.to_excel("Output/Excel/df_pdf.xlsx")
+    all_countries = pd.read_excel("Datos/all_countries_list.xlsx")
 
-    page
+    all_countries['COUNTRY_NAME'] = all_countries['COUNTRY_NAME'].apply(lambda x: unidecode(x))
 
 
-    mock = False
+    path = "Datos/PDF/Juan_Vilar/Importacion Total.pdf"
+    df = tabula.read_pdf(path, pages='all')[0]
+
+    # code to append the 1st line to the column if the info is provisional or not (knowing all the last 2 years are provisional it is not needed)
+    """first_row = df.iloc[0]
+    for column in df.columns:
+        if not pd.isnull(first_row[column]):
+            df.rename(columns={column: column + first_row[column]}, inplace=True)
+    """
+    # Reset the index if needed
+
+    # getting the county col
+    df.columns.values[0] = 'COUNTRY'
+    #updating the coulum name so the index might see it
+    df.rename(columns={column: column }, inplace=True)
+    df = df.iloc[2:]
+    df.columns
+    df = df.reset_index(drop=True)
+    # eliminating all the others with null values
+   # col_to_drop = [col for col in df.columns if 'Unnamed' in col]
+    col_to_drop = [col for col in df.columns if 'Unnamed' in col and col != 'COUNTRY']
+
+    #col_to_drop= df.columns[1]
+    col_to_drop
+    df = df.drop(columns=col_to_drop)
+    df
+    df['COUNTRY'] = df['COUNTRY'].apply(lambda x: unidecode(x))
+
+    # code to get the proper country name
+    elements_to_check = all_countries['COUNTRY_NAME']
+    # Loop through the DataFrame and replace row values if an element is found
+    for index, row in df.iterrows():
+        for element in elements_to_check:
+            if element in row['COUNTRY']:
+                df.at[index, 'COUNTRY'] = element
+
+    sheet_name = 'IMPORT_GLOBAL'
+    df['COUNTRY'] =  sheet_name +"_"+ df['COUNTRY']
+
+    stingtry = "1990/91"
+    #recieve all the years putting the sequent and once theyll be at the same year I shift - 3 months to make cross year
+
+    a = int(stingtry[0:2] + stingtry[-2:])
+
+    newcols = []
+
+    for col in df.columns[1:]:
+        last_part = col.split("/")[-1]
+        if last_part == "0":
+            newyear = "2000"
+        elif len (last_part ) ==1:
+            newyear = col[0:3] + last_part
+        else:
+            newyear= col[0:2] + col[-2:]
+        newcols.append(int(newyear))
+
+    for i, col in enumerate(df.columns[1:]):
+        df = df.rename(columns={col: newcols[i]})
+
+    df_transposed = df.transpose()
+    df_transposed.iloc[0]
+    df.columns
+
+    col_to_update
+
+    df
+    df_transposed.to_excel("Output/Excel/df_tabula.xlsx")
+
+    for col in df.columns:
+        if 'Unnamed' in col:
+            print("spot")
+
+
+
+        mock = False
     if mock == False:
         try:
             # Code that might raise an exception
