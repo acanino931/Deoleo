@@ -168,7 +168,9 @@ def cross_correlation_variable(df, col, target_col, nlags):
     df = df.loc[df.index[df[col].notnull()].min():]
     df[col] = df[col].fillna(method='ffill')
 
-    cross_corr = sm.tsa.stattools.ccf(df[col], df[target_col], adjusted=False)
+    #modified the order of the 1st 2 params as test to see if it makes much more sense
+    cross_corr = sm.tsa.stattools.ccf(df[target_col],df[col],  adjusted=False)
+
 
     # Get the first 'nlags' lines of cross-correlation
     cross_corr_first_lags = cross_corr[:nlags]
@@ -209,5 +211,19 @@ def plot_correlation_matrix(df):
     plt.figure() # figsize=(28, 26)
     sns.heatmap(correlation_matrix_month, annot=True, fmt=".2f", cmap=cmap, center=0,cbar=False)  # Use custom colorscale
     plt.title("Correlation Heatmap with Custom Colorscale")
+    plt.show()
+
+def plot_correlation_target_variable(df, target_variable = 'VIRGEN_EXTRA_EUR_kg'):
+    # change the df to df_outliers
+    # Calculate correlation between predictors (features) and the target variable (y)
+    correlation_with_y = df.corr()[target_variable].drop(
+        target_variable)  # Replace 'EVOO_ES' with your actual target variable name
+
+    # Create a bar plot to visualize the correlations
+    plt.figure(figsize=(16, 12))  # Adjust the figure size as needed
+    sns.barplot(x=correlation_with_y.values, y=correlation_with_y.index, orient='h', palette='viridis')
+    plt.xlabel(f"Correlation with {target_variable}")  # Update with your target variable's name
+    plt.ylabel('Predictor Variables')
+    plt.title(f"Correlation of Predictor Variables with {target_variable}")
     plt.show()
 

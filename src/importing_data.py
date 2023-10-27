@@ -136,12 +136,18 @@ def load_data():
         additional_exog['PRODUCTION'] =additional_exog.PRODUCTION.fillna(0)
         additional_exog['DUMMY_PRODUCTION'] = additional_exog['PRODUCTION'].apply(lambda x: 1 if x != 0 else 0)
         #additional_exog.drop('PRODUCTION', axis =1,inplace = True)
-        additional_exog['STOCK_OIL'] = additional_exog['EXIS_INIC'] + additional_exog['PRODUCTION']
+      #  additional_exog['STOCK_OIL'] = additional_exog['EXIS_INIC'] + additional_exog['PRODUCTION']
+        # availability of olive oil = initial existence and production of the previous period
+   #     additional_exog['STOCK_OIL'] = additional_exog['EXIS_INIC'].shift(-1)
+  #     additional_exog['STOCK_OIL'] = additional_exog['STOCK_OIL'].fillna(method='ffill' ,limit=1)
 
         # Creating the Spanish demand variable
         additional_exog['INTERNAL_DEMAND'] = additional_exog['INNER_CONS'] + additional_exog['IMPORTS']
         # creating the spanish prouction DEMAND = TOTAL DEMAND
         additional_exog['EXTERNAL_DEMAND'] = additional_exog['INNER_CONS'] + additional_exog['EXPORTS']
+
+        additional_exog['TOTAL_DEMAND'] = additional_exog['INNER_CONS'] + additional_exog['EXPORTS'] + additional_exog['IMPORTS']
+
 
 
         # Merge the two DataFrames on the 'DATE' column using an outer join

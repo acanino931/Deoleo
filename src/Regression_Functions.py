@@ -21,12 +21,18 @@ def remove_null_rows(df,target_variable = 'VIRGEN_EXTRA_EUR_kg'):
     x_data = sm.add_constant(x_data)
     return (x_data,y_data,max_data_no_missing, column_data_max)
 
+def shuffle_columns(df):
+    columns = list(df.columns)
+    np.random.shuffle(columns)
+    shuffled_df = df[columns]
+    return shuffled_df
+
 def stepwise_eliminating(df, target_variable, iterations):
     ls_to_del = []
     data = []  # Initialize an empty list to collect dictionaries
 
     for i in range(iterations):
-        df1 = df.copy()
+        df1 = shuffle_columns(df)
         df1 = df1.drop(columns=ls_to_del)
         X, y, max_data_no_missing, column_data_max = remove_null_rows(df1, target_variable=target_variable)
         # Fit the regression model
@@ -82,9 +88,8 @@ def eliminate_rows_from_date(df,specific_date ):
     df1 = df1.fillna(method='ffill').fillna(method='bfill')
     return df1
 
-def back_testing_actual_time( df,test_sample,horizontes, target_variable = 'VIRGEN_EXTRA_EUR_kg' ):
+def back_testing_SARIMAX( df,test_sample,horizontes, target_variable = 'VIRGEN_EXTRA_EUR_kg' ):
     # the X are not forecasted, use with actual values
-    # this function has the simple regression model build another function for the Sarimax.
     y = df[target_variable].copy()
     X = df.drop(columns = [target_variable])
     X = sm.add_constant(X)
@@ -130,7 +135,8 @@ def back_testing_actual_time( df,test_sample,horizontes, target_variable = 'VIRG
   #  df_pred = pd.DataFrame({"V1": predicc[0]})
 
 
-def back_testing_actual_time_try(df, test_sample, horizontes, target_variable='VIRGEN_EXTRA_EUR_kg'):
+def back_testing_regression(df, test_sample, horizontes, target_variable='VIRGEN_EXTRA_EUR_kg'):
+    # the X are not forecasted, use with actual values
     y = df[target_variable].copy()
     X = df.drop(columns=[target_variable])
     X = sm.add_constant(X)
@@ -153,11 +159,10 @@ def back_testing_actual_time_try(df, test_sample, horizontes, target_variable='V
             X_forecast = X[n_estimation + i - Periods_ahead:n_estimation + i + 1]
 
             y_pred = model.predict(exog=X_forecast)
-            predicc[Periods_ahead][i] = y_pred.iloc[Periods_ahead]
+            predicc[Periods_ahead][i] = y_pred.iloc[Periods_ahead] #unsure wheter to select the 1st value or the pred
 
         # Convert 'real' to a NumPy array before calculating MAPE and MSFE
         real_np = np.array(real)
-
         # Calculate MAPE for all periods up to the current one
         error = real_np - predicc[:(Periods_ahead + 1)]
         MAPE[Periods_ahead] = np.mean(np.abs(error / real_np)) * 100

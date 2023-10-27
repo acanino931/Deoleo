@@ -33,7 +33,7 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
             df['YEAR'] = df.index.year
         else:
             df['YEAR'] = df['DATE'].year
-        correlation_matrix = df.corr()
+    correlation_matrix = df.corr()
 
     max_correlation_with_target = correlation_matrix['VIRGEN_EXTRA_EUR_kg'].drop(['YEAR', 'VIRGEN_EXTRA_EUR_kg']).abs().sort_values(ascending=False)
     ordered_columns = max_correlation_with_target.index.tolist()
@@ -64,7 +64,20 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    mock = True
+    import pdfplumbe
+    import pandas as pd
+
+    pdf = pdfplumber.open("Datos/PDF/Juan_Vilar/Importacion Total.pdf")
+    page = pdf.pages[0]
+    table = page.extract_table()
+    df = pd.DataFrame(table[1:], columns=table[0])
+    pdf.close()
+    df.to_excel("Output/Excel/df_pdf.xlsx")
+
+    page
+
+
+    mock = False
     if mock == False:
         try:
             # Code that might raise an exception
@@ -86,47 +99,87 @@ if __name__ == '__main__':
 
     df_month_copy = df_month.copy()
 
-# 1st basic model
 
-    basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC','IMPORTS','EXPORTS', 'PRODUCTION','PRODUCTION_HARVEST']].copy()
+
+# 1st basic model
+    # consider to add stock oil
+    basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC','IMPORTS','EXPORTS', 'PRODUCTION','PRODUCTION_HARVEST','INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
+
+
+
+
+    gf.plot_correlation_target_variable(basic_model_df,'VIRGEN_EXTRA_EUR_kg')
+
+#    basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC','IMPORTS','EXPORTS', 'PRODUCTION','PRODUCTION_HARVEST']].copy()
+ #   basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','IMPORTS','EXPORTS']].copy()
+
 
     basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
-    df_step = rf.stepwise_eliminating(basic_model_df,'VIRGEN_EXTRA_EUR_kg',3)
-   # print(df_step.iloc[:, 0:4])
+    df_step = rf.stepwise_eliminating(basic_model_df_man,'VIRGEN_EXTRA_EUR_kg',2)
+    print(df_step.iloc[:, 0:4])
     iteration_selected = 1
-    rf.save_model_summary_to_file(df_step, iteration_selected, f"Output/Document/regression_summary_basic_model_stepwise_{iteration_selected}_original_2005_data.txt")
+    list (df_step.iloc[iteration_selected,:5])
+    rf.save_model_summary_to_file(basic_model_df_man, iteration_selected, f"Output/Document/regression_summary_basic_model_stepwise_{iteration_selected}_original_2005_data.txt")
     col_selected = df_step.loc[df_step.index[iteration_selected-1],'Actual_cols']
 
     basic_model_df_bck = basic_model_df[col_selected].copy()
     len(basic_model_df_bck['VIRGEN_EXTRA_EUR_kg'])
   #  df_pred, MSFE,MAPE = rf.back_testing_actual_time(basic_model_df_bck,50, 24, 'VIRGEN_EXTRA_EUR_kg') # montly model 50 obs out # 24 horizons previewd
     #df_pred.columns
-    df_pred, MSFE, MAPE = rf.back_testing_actual_time_try(basic_model_df_bck, 50, 24 ,'VIRGEN_EXTRA_EUR_kg')  # montly model 50 obs out # 24 horizons previewd
+    df_pred, MSFE, MAPE = rf.back_testing_regression(basic_model_df_bck, 50, 24 ,'VIRGEN_EXTRA_EUR_kg')  # montly model 50 obs out # 24 horizons previewd
 
 
     df_pred
     MAPE
     basic_model_df_bck.columns
 
+    basic_model_df.columns
+
+    print_doc_descriptive_vars(basic_model_df_man,'VIRGEN_EXTRA_EUR_kg',24)
+    gf.plot_correlation_matrix(basic_model_df_man)
+
+    df_month.columns
+    basic_model_df_man
+#   anticipo -2 production harvest -1 exports (intorno ai 40 y 35)
+
+    basic_model_df_man = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'PRODUCTION','INNER_CONS' ,'PRODUCTION_HARVEST','INTERNAL_DEMAND', 'EXTERNAL_DEMAND', ]].copy()
+    basic_model_df_man['PRODUCTION_HARVEST_OLD'] = basic_model_df_man['PRODUCTION_HARVEST'].shift(12)
+    basic_model_df_man['PRODUCTION_HARVEST_OLD'] = basic_model_df_man['PRODUCTION_HARVEST_OLD'].fillna(method='ffill' ,limit=12)
+    basic_model_df_man['PRODUCTION_HARVEST'] = basic_model_df_man['PRODUCTION_HARVEST'].shift(-3)
+    basic_model_df_man['PRODUCTION_HARVEST'] = basic_model_df_man['PRODUCTION_HARVEST'].fillna(method='ffill' ,limit=3)
+    basic_model_df_man['EXPORTS'] = basic_model_df_man['EXPORTS'].shift(12)
+    basic_model_df_man['EXPORTS'] = basic_model_df_man['EXPORTS'].fillna(method='ffill' ,limit=12)
+    basic_model_df_man['INTERNAL_DEMAND'] = basic_model_df_man['INTERNAL_DEMAND'].shift(13)
+    basic_model_df_man['INTERNAL_DEMAND'] = basic_model_df_man['INTERNAL_DEMAND'].fillna(method='ffill' ,limit=13)
+    basic_model_df_man['EXTERNAL_DEMAND'] = basic_model_df_man['EXTERNAL_DEMAND'].shift(13)
+    basic_model_df_man['EXTERNAL_DEMAND'] = basic_model_df_man['EXTERNAL_DEMAND'].fillna(method='ffill' ,limit=13)
+    basic_model_df_man['PRODUCTION'] = basic_model_df_man['PRODUCTION'].shift(6)
+    basic_model_df_man['PRODUCTION'] = basic_model_df_man['PRODUCTION'].fillna(method='ffill' ,limit=6)
 
 
-    print_doc_descriptive_vars(basic_model_df,'VIRGEN_EXTRA_EUR_kg',24)
-    gf.plot_correlation_matrix(basic_model_df)
-
-    basic_model_df_bck = sm.add_constant(basic_model_df_bck)
+   #    basic_model_df_man = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'PRODUCTION','INNER_CONS' ,'PRODUCTION_HARVEST','INTERNAL_DEMAND', 'EXTERNAL_DEMAND',PRODUCTION_HARVEST_OLD ]].copy()
+    basic_model_df_man = basic_model_df_man[['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS' , 'EXPORTS', 'PRODUCTION_HARVEST','EXTERNAL_DEMAND','PRODUCTION_HARVEST_OLD','INTERNAL_DEMAND']].copy()
+    basic_model_df_man = basic_model_df_man.drop(columns = ['EXTERNAL_DEMAND','PRODUCTION'])
+    basic_model_df_man = sm.add_constant(basic_model_df_man)
     target_variable = 'VIRGEN_EXTRA_EUR_kg'
-    y = basic_model_df_bck[target_variable].copy()
-    X = basic_model_df_bck.drop(columns = [target_variable])
+    basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')
+    y = basic_model_df_man[target_variable].copy()
+    X = basic_model_df_man.drop(columns = [target_variable])
     model = sm.OLS(y, X).fit()
     print (model.summary())
-
+    df_pred, MSFE, MAPE = rf.back_testing_regression(basic_model_df_man, 50, 24 ,'VIRGEN_EXTRA_EUR_kg')  # montly model 50 obs out # 24 horizons previewd
+    MAPE
     model_sar = SARIMAX(y, exog=X, order=(0, 0, 0), seasonal_order=(0, 0, 0, 0))
     model_fit = model_sar.fit()
     print(model_fit.summary())
+    MAPE_df = pd.DataFrame(MAPE)
+    MSFE_df = pd.DataFrame(MSFE)
+    df_mapes = pd.merge(MAPE_df,MSFE_df , left_index = True, right_index= True  )
+    df_mapes.to_excel("Output/Excel/MAPE.xlsx")
+    type(MAPE)
+    print(X[X.isnull()])
 
-
-
-
+    X.info()
 
     # Generate some example data
     np.random.seed(0)
