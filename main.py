@@ -110,13 +110,7 @@ if __name__ == '__main__':
     sheet_name = 'IMPORT_GLOBAL'
     df['COUNTRY'] =  sheet_name +"_"+ df['COUNTRY']
 
-    stingtry = "1990/91"
-    #recieve all the years putting the sequent and once theyll be at the same year I shift - 3 months to make cross year
-
-    a = int(stingtry[0:2] + stingtry[-2:])
-
     newcols = []
-
     for col in df.columns[1:]:
         last_part = col.split("/")[-1]
         if last_part == "0":
@@ -130,22 +124,41 @@ if __name__ == '__main__':
     for i, col in enumerate(df.columns[1:]):
         df = df.rename(columns={col: newcols[i]})
 
+    df = df.rename(columns={'COUNTRY': 'YEAR'})
+
+    # GETTING THE CORRECT TYPE  OF THE INDEX TO RESAMPLE THE DATA INTO MOUNTHLY
+    df.set_index('YEAR',inplace = True)
     df_transposed = df.transpose()
-    df_transposed.iloc[0]
-    df.columns
-
-    col_to_update
-
-    df
-    df_transposed.to_excel("Output/Excel/df_tabula.xlsx")
-
-    for col in df.columns:
-        if 'Unnamed' in col:
-            print("spot")
+    df_transposed
+    df_transposed.index = df_transposed.index.astype(int)
+    df_transposed
+    df_transposed.index.dtype
+    df_transposed.index[0]
+    date_index = pd.date_range(start=str(df_transposed.index[0]), periods=len(df_transposed.index), freq='YS')
 
 
+    df_transposed.index = date_index
 
-        mock = False
+    # changing granularity
+    df_transposed = df_transposed.resample('MS').ffill()
+
+    extended_date_index = pd.date_range(start='2023-02-01', end='2023-12-01', freq='MS')
+    extended_date_index
+    extended_df = pd.DataFrame(index=extended_date_index)
+    df_transposed_fin = pd.concat([df_transposed, extended_df], axis=0)
+    # what out with the ffil we can imput automatically values to missing year make a control over the value we inputing
+    df_transposed_fin = df_transposed_fin.fillna(method="ffill",limit=11)
+
+    # shift the 1st 3 month to have cross data like the starting ones
+    df_transposed_fin_shifted  = df_transposed_fin.shift(-3)
+
+
+    df_transposed_fin_shifted.to_excel("Output/Excel/df_tabula.xlsx")
+
+
+
+
+    mock = False
     if mock == False:
         try:
             # Code that might raise an exception
