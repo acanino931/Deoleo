@@ -1,4 +1,5 @@
 # This is a sample Python script.
+from src import yearly_functions as yf
 import subprocess
 import pandas as pd
 from src import graphic_functions as gf
@@ -16,7 +17,7 @@ import tabula
 import importlib # code to reload  lib
 from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
-importlib.reload(imd)  # Reload the module # code to reload  lib
+importlib.reload(yf)  # Reload the module # code to reload  lib
 
 
 
@@ -88,7 +89,22 @@ if __name__ == '__main__':
 
     df_month.columns
 
+
+    df_selected = yf.select_annual_variable_from_dic (df_month)
+    df_aggr = yf.aggregate_mountly_data(df_selected)
+    df_selected.tail(14)
+    df_selected.columns
     df_month_copy = df_month.copy()
+    df_aggr.columns
+    target_transposed = yf.transpose_target_variable(df_month, 'VIRGEN_EXTRA_EUR_kg')
+    df_aggr.index
+
+    df_weight= yf.calc_correlations_yearly(df_aggr, target_transposed)
+    df_weight.to_excel("Output/Excel/df_weight.xlsx")
+
+
+
+    #df_month.columns = df_month.columns.str.replace('_seed', '')
 
 
 

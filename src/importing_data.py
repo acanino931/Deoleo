@@ -230,6 +230,7 @@ def load_data():
         df_month = pd.merge(df1,filtered_columns,how = 'left', left_on = 'DATE',right_index = True)
 
 
+
         #df_month =pd.concat([final_df['DATE'], df_month], axis=1)
         df_month.set_index('DATE',inplace = True)
         df_month['YEAR'] = df_month.index.year
@@ -329,7 +330,7 @@ def load_data():
 
         #cleaning the column names
         df_month.columns = df_month.columns.str.replace(' ', '_').str.replace('/', '_').str.replace('-', '_').str.replace(',', '_').str.replace('___', '_').str.replace('__', '_')
-
+        df_month.columns = df_month.columns.str.replace('_seed', '')
         df_month = pd.merge(df_month, energy_month, left_index=True ,right_index=True,  how='left')
 
 
@@ -365,11 +366,12 @@ def load_data():
         df_production_agg.index = pd.to_datetime(df_production_agg.index, format='%Y')
         df_production_agg.index.freq = pd.tseries.offsets.YearBegin()
         df_production_agg= df_production_agg.resample('MS').ffill()
-        df_month = pd.merge(df_month, df_production_agg, left_index = True ,right_index = True,  how='left')
+
         # we start considering the effect from the quantity of the harvest from March since the new harvest it's nearly over
         df_production_agg['PRODUCTION_HARVEST'] = df_production_agg['PRODUCTION_HARVEST'].shift(2)
         df_production_agg['PRODUCTION_HARVEST_LAST_YEAR'] = df_production_agg['PRODUCTION_HARVEST'].shift(14)
         df_production_agg['PRODUCTION_HARVEST_2_YEARS'] = df_production_agg['PRODUCTION_HARVEST'].shift(26)
+        df_month = pd.merge(df_month, df_production_agg, left_index=True, right_index=True, how='left')
 
         df_month.drop (columns =['HARVEST_YEAR'],inplace = True)
 
@@ -380,7 +382,7 @@ def load_data():
         df_month = df_month.fillna(method='ffill')
         df_month.to_excel("Output/Excel/df_month.xlsx")
 
-        return (df_month)
+        return df_month
 
 
 

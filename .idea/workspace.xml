@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="Ingestion_PDF_one_file_over">
+      <change afterPath="$PROJECT_DIR$/src/yearly_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/graphic_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -149,7 +149,14 @@
       <option name="project" value="LOCAL" />
       <updated>1698422253656</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Ingestion_PDF_one_file_over">
+      <created>1698686863709</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1698686863709</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
