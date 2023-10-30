@@ -166,7 +166,8 @@ def cross_correlation_variable(df, col, target_col, nlags):
     # using fill method starting from the 1st not null value for every column
     # this function show the correlations between t variables in different time lags, using the cross correlation function
     df = df.loc[df.index[df[col].notnull()].min():]
-    df[col] = df[col].fillna(method='ffill')
+    #line commented, leave like this if no errors occur
+   # df[col] = df[col].fillna(method='ffill')
 
     #modified the order of the 1st 2 params as test to see if it makes much more sense
     cross_corr = sm.tsa.stattools.ccf(df[target_col],df[col],  adjusted=False)

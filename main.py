@@ -10,12 +10,13 @@ from src import importing_data as imd
 from src import Regression_Functions as rf
 import numpy as np
 import statsmodels.api as sm
+import os
 
 import tabula
 import importlib # code to reload  lib
 from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
-importlib.reload(rf)  # Reload the module # code to reload  lib
+importlib.reload(imd)  # Reload the module # code to reload  lib
 
 
 
@@ -64,97 +65,6 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-
-
-    all_countries = pd.read_excel("Datos/all_countries_list.xlsx")
-
-    all_countries['COUNTRY_NAME'] = all_countries['COUNTRY_NAME'].apply(lambda x: unidecode(x))
-
-
-    path = "Datos/PDF/Juan_Vilar/Importacion Total.pdf"
-    df = tabula.read_pdf(path, pages='all')[0]
-
-    # code to append the 1st line to the column if the info is provisional or not (knowing all the last 2 years are provisional it is not needed)
-    """first_row = df.iloc[0]
-    for column in df.columns:
-        if not pd.isnull(first_row[column]):
-            df.rename(columns={column: column + first_row[column]}, inplace=True)
-    """
-    # Reset the index if needed
-
-    # getting the county col
-    df.columns.values[0] = 'COUNTRY'
-    #updating the coulum name so the index might see it
-    df.rename(columns={column: column }, inplace=True)
-    df = df.iloc[2:]
-    df.columns
-    df = df.reset_index(drop=True)
-    # eliminating all the others with null values
-   # col_to_drop = [col for col in df.columns if 'Unnamed' in col]
-    col_to_drop = [col for col in df.columns if 'Unnamed' in col and col != 'COUNTRY']
-
-    #col_to_drop= df.columns[1]
-    col_to_drop
-    df = df.drop(columns=col_to_drop)
-    df
-    df['COUNTRY'] = df['COUNTRY'].apply(lambda x: unidecode(x))
-
-    # code to get the proper country name
-    elements_to_check = all_countries['COUNTRY_NAME']
-    # Loop through the DataFrame and replace row values if an element is found
-    for index, row in df.iterrows():
-        for element in elements_to_check:
-            if element in row['COUNTRY']:
-                df.at[index, 'COUNTRY'] = element
-
-    sheet_name = 'IMPORT_GLOBAL'
-    df['COUNTRY'] =  sheet_name +"_"+ df['COUNTRY']
-
-    newcols = []
-    for col in df.columns[1:]:
-        last_part = col.split("/")[-1]
-        if last_part == "0":
-            newyear = "2000"
-        elif len (last_part ) ==1:
-            newyear = col[0:3] + last_part
-        else:
-            newyear= col[0:2] + col[-2:]
-        newcols.append(int(newyear))
-
-    for i, col in enumerate(df.columns[1:]):
-        df = df.rename(columns={col: newcols[i]})
-
-    df = df.rename(columns={'COUNTRY': 'YEAR'})
-
-    # GETTING THE CORRECT TYPE  OF THE INDEX TO RESAMPLE THE DATA INTO MOUNTHLY
-    df.set_index('YEAR',inplace = True)
-    df_transposed = df.transpose()
-    df_transposed
-    df_transposed.index = df_transposed.index.astype(int)
-    df_transposed
-    df_transposed.index.dtype
-    df_transposed.index[0]
-    date_index = pd.date_range(start=str(df_transposed.index[0]), periods=len(df_transposed.index), freq='YS')
-
-
-    df_transposed.index = date_index
-
-    # changing granularity
-    df_transposed = df_transposed.resample('MS').ffill()
-
-    extended_date_index = pd.date_range(start='2023-02-01', end='2023-12-01', freq='MS')
-    extended_date_index
-    extended_df = pd.DataFrame(index=extended_date_index)
-    df_transposed_fin = pd.concat([df_transposed, extended_df], axis=0)
-    # what out with the ffil we can imput automatically values to missing year make a control over the value we inputing
-    df_transposed_fin = df_transposed_fin.fillna(method="ffill",limit=11)
-
-    # shift the 1st 3 month to have cross data like the starting ones
-    df_transposed_fin_shifted  = df_transposed_fin.shift(-3)
-
-
-    df_transposed_fin_shifted.to_excel("Output/Excel/df_tabula.xlsx")
-
 
 
 

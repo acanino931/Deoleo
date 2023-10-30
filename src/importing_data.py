@@ -9,10 +9,9 @@ import datetime
 warnings.filterwarnings("ignore")
 import itertools
 from itertools import product
+from unidecode import unidecode
+import tabula
 
-# TODO make a left join statring with the  weighted data and at the end eliminate the usl3ess rows. #
-
-# TODO END
 
 def import_montly_andalucia():
     montly_sheets = ['Observatorio Mens EXTRA VIRGEN', 'Observatorio Mens VIRGEN', 'Observatorio Mens LAMPANTE']
@@ -367,9 +366,13 @@ def load_data():
         df_production_agg.index.freq = pd.tseries.offsets.YearBegin()
         df_production_agg= df_production_agg.resample('MS').ffill()
         df_month = pd.merge(df_month, df_production_agg, left_index = True ,right_index = True,  how='left')
-
+        # we start considering the effect from the quantity of the harvest from March since the new harvest it's nearly over
+        df_production_agg['PRODUCTION_HARVEST'] = df_production_agg['PRODUCTION_HARVEST'].shift(2)
+        df_production_agg['PRODUCTION_HARVEST_LAST_YEAR'] = df_production_agg['PRODUCTION_HARVEST'].shift(14)
+        df_production_agg['PRODUCTION_HARVEST_2_YEARS'] = df_production_agg['PRODUCTION_HARVEST'].shift(26)
 
         df_month.drop (columns =['HARVEST_YEAR'],inplace = True)
+
 
         # until we update the data let us keep the values until June
         specific_date = pd.to_datetime('2023-07-01')
@@ -378,3 +381,124 @@ def load_data():
         df_month.to_excel("Output/Excel/df_month.xlsx")
 
         return (df_month)
+
+
+
+def import_single_pdf(path_file ,filename) :
+    print(filename)
+    all_countries = pd.read_excel("Datos/all_countries_list.xlsx")
+
+    all_countries['COUNTRY_NAME'] = all_countries['COUNTRY_NAME'].apply(lambda x: unidecode(x))
+    filename
+    path= path_file + filename
+    #path_file = path = "Datos/PDF/Juan_Vilar/Importacion Total.pdf"
+    df = tabula.read_pdf(path, pages='all')[0]
+
+    # code to append the 1st line to the column if the info is provisional or not (knowing all the last 2 years are provisional it is not needed)
+    """first_row = df.iloc[0]
+    for column in df.columns:
+        if not pd.isnull(first_row[column]):
+            df.rename(columns={column: column + first_row[column]}, inplace=True)
+    """
+    # Reset the index if needed
+
+    # getting the county col
+    df.columns.values[0] = 'COUNTRY'
+    # updating the coulum name so the index might see it
+    for column in df.columns:
+        df.rename(columns={column: column}, inplace=True)
+    df = df.iloc[2:]
+
+    df = df.reset_index(drop=True)
+    # eliminating all the others with null values
+    # col_to_drop = [col for col in df.columns if 'Unnamed' in col]
+    col_to_drop = [col for col in df.columns if 'Unnamed' in col and col != 'COUNTRY']
+
+    df = df.drop(columns=col_to_drop)
+    df['COUNTRY'] = df['COUNTRY'].apply(lambda x: unidecode(x))
+
+    # code to get the proper country name
+    elements_to_check = all_countries['COUNTRY_NAME']
+    # Loop through the DataFrame and replace row values if an element is found
+    for index, row in df.iterrows():
+        for element in elements_to_check:
+            if element in row['COUNTRY']:
+                df.at[index, 'COUNTRY'] = element
+
+    sheet_name = filename.split(".")[0]
+    df['COUNTRY'] = sheet_name + "_" + df['COUNTRY']
+
+    newcols = []
+    for col in df.columns[1:]:
+        last_part = col.split("/")[-1]
+        if last_part == "0":
+            newyear = "2000"
+        elif len(last_part) == 1:
+            newyear = col[0:3] + last_part
+        else:
+            newyear = col[0:2] + col[-2:]
+        newcols.append(int(newyear))
+
+    for i, col in enumerate(df.columns[1:]):
+        df = df.rename(columns={col: newcols[i]})
+
+    df = df.rename(columns={'COUNTRY': 'YEAR'})
+
+    # GETTING THE CORRECT TYPE  OF THE INDEX TO RESAMPLE THE DATA INTO MOUNTHLY
+    df.set_index('YEAR', inplace=True)
+    df_transposed = df.transpose()
+    df_transposed
+    df_transposed.index = df_transposed.index.astype(int)
+    df_transposed
+    df_transposed.index.dtype
+    df_transposed.index[0]
+    date_index = pd.date_range(start=str(df_transposed.index[0]), periods=len(df_transposed.index), freq='YS')
+
+    df_transposed.index = date_index
+
+    # changing granularity
+    df_transposed = df_transposed.resample('MS').ffill()
+
+    max_index = df_transposed.index.max()
+    next_month = max_index + pd.DateOffset(months=1)
+    first_day_of_next_month = pd.Timestamp(year=next_month.year, month=next_month.month, day=1)
+    first_day_of_next_month
+    date_string = first_day_of_next_month.strftime('%Y-%m-%d')
+
+
+    extended_date_index = pd.date_range(start= date_string, end='2023-12-01', freq='MS')
+    extended_df = pd.DataFrame(index=extended_date_index)
+    df_transposed_fin = pd.concat([df_transposed, extended_df], axis=0)
+    # what out with the ffil we can imput automatically values to missing year make a control over the value we inputing
+    df_transposed_fin = df_transposed_fin.fillna(method="ffill", limit=11)
+
+    # shift the 1st 3 month to have cross data like the starting ones
+    df_transposed_fin_shifted = df_transposed_fin.shift(-3)
+    # if all the values of a coloumn are null we directly eliminate the columns:
+    eliminated_columns = [column for column in df_transposed_fin_shifted.columns if
+                          df_transposed_fin_shifted[column].isnull().all()]
+
+    # Drop the columns with all null values
+    df_transposed_fin_shifted.drop(eliminated_columns, axis=1, inplace=True)
+      #  df_transposed_fin_shifted.to_excel("Output/Excel/df_tabula.xlsx")
+    return df_transposed_fin_shifted
+
+def initialize_df_month(start_date,end_date):
+
+
+    # Generate a date range with monthly granularity
+    date_range = pd.date_range(start=start_date, end=end_date, freq='MS')
+    df = pd.DataFrame(index=date_range)
+    return df
+
+def import_pdf_data (path_file ,filename , start_date = '2001-01-01', end_date = '2023-12-01'):
+    df_pdf = import_single_pdf("Datos/PDF/Juan_Vilar/" ,"Importacion Total.pdf")
+    "Datos/PDF/Juan_Vilar/Importacion Total.pdf"
+    path_folder_pdf = "Datos/PDF/Juan_Vilar/"
+    df_pdf_tot = initialize_df_month(start_date,end_date)
+
+    ls_file_pdf = [file for file in os.listdir(path_folder_pdf) if "Informe" not in file]
+    for filename in ls_file_pdf:
+        df_pdf = import_single_pdf("Datos/PDF/Juan_Vilar/" ,filename)
+        df_pdf_tot= pd.merge (df_pdf_tot,df_pdf , right_index= True, left_index= True)
+    return df_pdf_tot
