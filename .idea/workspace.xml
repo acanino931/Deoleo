@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="Yearly function added" />
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="Yearly function added">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Document/sample_with_pycharm.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Output/Excel/df_weight.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_weight.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prova.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/prova.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/graphic_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/yearly_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/yearly_functions.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -156,7 +168,14 @@
       <option name="project" value="LOCAL" />
       <updated>1698692682943</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Yearly function added">
+      <created>1698739516197</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1698739516197</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

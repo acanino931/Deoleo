@@ -68,8 +68,12 @@ def stepwise_eliminating(df, target_variable, iterations):
 
 def save_model_summary_to_file(df, index, file_path):
     try:
+        df1 = df.copy()
+        df1['New_Index'] = range(len(df))
+        index_to_sel = df1.loc['New_Index']
+        index_to_sel = df1.loc[df1['New_Index'] == index].index
         # Get the Model_summary from the specified row based on the index
-        model_summary = df.loc[index-1, 'Model_summary']
+        model_summary = df.loc[index_to_sel, 'Model_summary']
 
         # Write the Model_summary to the specified file
         with open(file_path, 'w') as file:

@@ -17,7 +17,7 @@ import tabula
 import importlib # code to reload  lib
 from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
-importlib.reload(yf)  # Reload the module # code to reload  lib
+importlib.reload(imd)  # Reload the module # code to reload  lib
 
 
 
@@ -37,6 +37,7 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
         else:
             df['YEAR'] = df['DATE'].year
     correlation_matrix = df.corr()
+
 
     max_correlation_with_target = correlation_matrix['VIRGEN_EXTRA_EUR_kg'].drop(['YEAR', 'VIRGEN_EXTRA_EUR_kg']).abs().sort_values(ascending=False)
     ordered_columns = max_correlation_with_target.index.tolist()
@@ -87,16 +88,63 @@ if __name__ == '__main__':
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
 
-    df_month.columns
+
+    # Modelo Basico
+
+    # pretreat variables :
+    df_month = df_month.fillna(method='ffill')
+    basic_model_df = df_month[
+        ['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST',
+         'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
+    basic_model_df = df_month.copy()
+    basic_model_df['TOTAL_CONS'] = basic_model_df['INNER_CONS'] + basic_model_df['EXPORTS']
+    basic_model_df['EXPORTS_LAG15'] = basic_model_df['EXPORTS'].shift(15)
+    basic_model_df['INTERNAL_DEMAND_LAG_13'] = basic_model_df['INTERNAL_DEMAND'].shift(13)
+    basic_model_df['TOTAL_CONS_LAG_12'] = basic_model_df['EXTERNAL_DEMAND'].shift(12)
+    basic_model_df['PRODUCTION_LAG_21'] = basic_model_df['PRODUCTION'].shift(21)
+    basic_model_df['TOTAL_CONS_LAG_13'] = basic_model_df['TOTAL_CONS'].shift(13)
+    basic_model_df['EXIS_INIC_18'] = basic_model_df['EXIS_INIC'].shift(18)
+    basic_model_df['PRODUCTION_HARVEST_LAG_8'] = basic_model_df['PRODUCTION_HARVEST'].shift(8)
+    basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
+    basic_model_df.to_excel("Output/Excel/basic_model_df.xlsx")
+
+    gf.plot_correlation_target_variable(basic_model_df, 'IMC_EXTRA_VIRGEN_EUR_kg')
+
+    gf.plot_correlation_matrix(basic_model_df)
+
+    # manual, stepwise omitted
+    basic_model_df_man = basic_model_df[
+        ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
+         'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
+
+    target_variable = 'VIRGEN_EXTRA_EUR_kg'
+    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
 
 
-    df_selected = yf.select_annual_variable_from_dic (df_month)
+    y = basic_model_df_man[target_variable].copy()
+    X = basic_model_df_man.drop(columns=[target_variable])
+    X = sm.add_constant(X)
+    model = sm.OLS(y, X).fit()
+    print(model.summary())
+
+
+
+
+    # end modelo basico manual
+
+    #selected_datetime = '2021-12-01'
+    #df_month_copy= df_month.loc[:selected_datetime].copy()
+    df_month_copy
+
+
+    #def compute_montly_weight(df_month,'VIRGEN_EXTRA_EUR_kg')
+    df_selected = yf.select_annual_variable_from_dic (df_month_copy)
     df_aggr = yf.aggregate_mountly_data(df_selected)
     df_selected.tail(14)
     df_selected.columns
-    df_month_copy = df_month.copy()
+    #df_month_copy = df_month.copy()
     df_aggr.columns
-    target_transposed = yf.transpose_target_variable(df_month, 'VIRGEN_EXTRA_EUR_kg')
+    target_transposed = yf.transpose_target_variable(df_month_copy, 'VIRGEN_EXTRA_EUR_kg')
     df_aggr.index
 
     df_weight= yf.calc_correlations_yearly(df_aggr, target_transposed)
@@ -142,7 +190,11 @@ if __name__ == '__main__':
 
     basic_model_df.columns
 
-    print_doc_descriptive_vars(basic_model_df_man,'VIRGEN_EXTRA_EUR_kg',24)
+    selected_rows
+    selected_rows1
+    df_month_copy.Month
+    print_doc_descriptive_vars(selected_rows,'VIRGEN_EXTRA_EUR_kg',24)
+    print_doc_descriptive_vars(selected_rows1, 'VIRGEN_EXTRA_EUR_kg', 24)
     gf.plot_correlation_matrix(basic_model_df_man)
 
     df_month.columns

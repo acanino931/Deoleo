@@ -170,7 +170,7 @@ def cross_correlation_variable(df, col, target_col, nlags):
    # df[col] = df[col].fillna(method='ffill')
 
     #modified the order of the 1st 2 params as test to see if it makes much more sense
-    cross_corr = sm.tsa.stattools.ccf(df[target_col],df[col],  adjusted=False)
+    cross_corr = sm.tsa.stattools.ccf(df[target_col],df[col], adjusted=False)
 
 
     # Get the first 'nlags' lines of cross-correlation
@@ -201,6 +201,24 @@ def cross_correlation_variable(df, col, target_col, nlags):
     plt.close()
     return image_buffer
 
+def cross_correlation_variable_out_df(df, col, target_col, nlags):
+    # using fill method starting from the 1st not null value for every column
+    # this function show the correlations between t variables in different time lags, using the cross correlation function
+    df = df.loc[df.index[df[col].notnull()].min():]
+    #line commented, leave like this if no errors occur
+   # df[col] = df[col].fillna(method='ffill')
+
+    #modified the order of the 1st 2 params as test to see if it makes much more sense
+    cross_corr = sm.tsa.stattools.ccf(df[target_col],df[col], adjusted=False)
+
+
+    # Get the first 'nlags' lines of cross-correlation
+    cross_corr_first_lags = cross_corr[:nlags]
+
+
+    # Calculate the average correlation for the selected period
+
+    return cross_corr_first_lags
 
 def plot_correlation_matrix(df):
     df = order_by_correlation_size(df)
@@ -228,3 +246,45 @@ def plot_correlation_target_variable(df, target_variable = 'VIRGEN_EXTRA_EUR_kg'
     plt.title(f"Correlation of Predictor Variables with {target_variable}")
     plt.show()
 
+
+
+def mark_outliers(df, column_name):
+    df1= df[[column_name]]
+    # Calculate the first quartile (Q1) and third quartile (Q3)
+    Q1 = df[column_name].quantile(0.25)
+    Q3 = df[column_name].quantile(0.75)
+
+    # Calculate the interquartile range (IQR)
+    IQR = Q3 - Q1
+
+    # Define the outlier threshold (3 times the IQR)
+    outlier_threshold = 3 * IQR
+
+    # Create a new column 'IsOutlier' in the DataFrame
+    df1[column_name+'_is_outlier'] = np.where((df[column_name] > Q3 + outlier_threshold) | (df[column_name] < Q1 - outlier_threshold), 1, 0)
+
+    return df1[column_name+'_is_outlier']
+
+
+def plot_time_series_with_outliers(df, column_name, is_outlier_column):
+    # Extract the time series values and 'IsOutlier' values
+    time_series = df[column_name]
+    is_outlier = df[is_outlier_column] == 1
+
+    # Create a figure and axis
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Plot the time series
+    ax.plot(df.index, time_series, label=column_name)
+
+    # Highlight the outlier values with red markers
+    ax.scatter(df.index[is_outlier], time_series[is_outlier], color='red', marker='o', label='Outliers')
+
+    # Set plot labels and legend
+    ax.set_xlabel('Date')
+    ax.set_ylabel(column_name)
+    ax.set_title(f'Time Series with Outliers for {column_name}')
+    ax.legend()
+
+    # Show the plot
+    plt.show()

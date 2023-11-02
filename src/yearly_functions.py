@@ -1,4 +1,5 @@
 import pandas as pd
+from src import graphic_functions as gf
 
 def transpose_target_variable(df1,target_variable='VIRGEN_EXTRA_EUR_kg'):
     # trasposing the olive oil prices using years as rows and months as columns
@@ -64,6 +65,7 @@ def aggregate_mountly_data(df1):
     df_fin.set_index('Year',inplace = True)
     return df_fin
 
+#def compute_montly_weight(df_month,'VIRGEN_EXTRA_EUR_kg'):
 
 def calc_correlations_yearly (df_in, target_transposed):
     #
@@ -75,9 +77,10 @@ def calc_correlations_yearly (df_in, target_transposed):
         df_precorr = pd.merge(df_temp, target_transposed, left_index=True, right_index=True, how='left')
         target_transposed = target_transposed.fillna(method='ffill').fillna(method='bfill')
         # loop to show the graph of cross correlation function
-        # for var in df_precorr :
+        #for var in df_precorr :
         #    if var != df_precorr.iloc[:, 0].name:
-        #        cross_correlation_variable(df_precorr,df_precorr.iloc[:, 0].name,var, 24)
+        #        gf.cross_correlation_variable(df_precorr,df_precorr.iloc[:, 0].name,var, 24)
+
         df_corr = df_precorr.corr()
         # eliminating the 1st row that give us the information the correlation of the variable with itself
         df_corr = df_corr.iloc[1:, :]
