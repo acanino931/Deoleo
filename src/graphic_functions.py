@@ -209,7 +209,7 @@ def cross_correlation_variable_out_df(df, col, target_col, nlags):
    # df[col] = df[col].fillna(method='ffill')
 
     #modified the order of the 1st 2 params as test to see if it makes much more sense
-    cross_corr = sm.tsa.stattools.ccf(df[target_col],df[col], adjusted=False)
+    cross_corr = sm.tsa.stattools.ccf(df[col],df[target_col], adjusted=False)
 
 
     # Get the first 'nlags' lines of cross-correlation
@@ -219,6 +219,102 @@ def cross_correlation_variable_out_df(df, col, target_col, nlags):
     # Calculate the average correlation for the selected period
 
     return cross_corr_first_lags
+
+
+def custom_ccf(df,col, target_variable, nlags):
+    # Create a copy of the dataframe to avoid modifying the original
+    df_copy = df.copy()
+
+    # Initialize an array to store correlation values
+    correlations = []
+
+    # Loop to create and store lagged variables
+    for lag in range(1, nlags + 1):
+        # Create a new variable name for the lagged variable
+        varname_lag = f"{col}_lag_{lag}"
+
+        # Perform the lag by shifting the target variable
+        df_copy[varname_lag] = df_copy[col].shift(lag)
+
+        # Calculate the correlation between the lagged variable and the target variable
+        correlation = df_copy[varname_lag].corr(df_copy[target_variable])
+
+        # Append the correlation value to the array
+        correlations.append(correlation)
+
+    # Return the array of correlation values
+    average_corr = np.mean(correlations)
+
+    # Create a figure and axis
+    fig, ax = plt.subplots(figsize=(5, 4))
+
+    # Plot cross-correlation
+    ax.plot(correlations, marker='o', linestyle='-', color='b', label='Cross-Correlation')
+
+    # Add horizontal line for the average correlation
+    ax.axhline(y=average_corr, color='purple', linestyle='--', label='Average Correlation')
+
+    # Set labels and title
+    ax.set_xlabel('Lag')
+    ax.set_ylabel('Correlation')
+    ax.set_title(f'Cross-Correlation for lagged {col} with {target_variable}')
+    ax.legend()
+
+    # Show the plot
+    image_buffer = BytesIO()
+    plt.savefig(image_buffer, bbox_inches='tight')
+    image_buffer.seek(0)
+    plt.close()
+    return image_buffer
+
+
+def compute_lags_for_custom_ccf_IMC(df,nlags, col_to_lag = 'VIRGEN_EXTRA_EUR_kg',target_variable= 'IMC_EXTRA_VIRGEN_EUR_kg'):
+    df1 = df[[target_variable,col_to_lag]]
+
+    for lag in range (1,nlags+1):
+        varname_lag = f"{col_to_lag}_lag_{lag}"
+        df1[varname_lag] = df[col_to_lag].shift(lag)
+    return df1
+
+
+def custom_ccf_IMC(df,col='VIRGEN_EXTRA_EUR_kg', target_variable='IMC_EXTRA_VIRGEN_EUR_kg'):
+    # Create a copy of the dataframe to avoid modifying the original
+    df_copy = df.copy()
+
+    # Initialize an array to store correlation values
+    correlations = []
+
+    # Loop to create and store lagged variables
+    for col_name in df.columns:
+        if col_name != target_variable:
+
+            # Calculate the correlation between the lagged variable and the target variable
+            correlation = df_copy[col_name].corr(df_copy[target_variable])
+
+            # Append the correlation value to the array
+            correlations.append(correlation)
+    average_corr = np.mean(correlations)
+
+    # Create a figure and axis
+    fig, ax = plt.subplots(figsize=(5, 4))
+
+    # Plot cross-correlation
+    ax.plot(correlations, marker='o', linestyle='-', color='b', label='Cross-Correlation')
+
+    # Add horizontal line for the average correlation
+    ax.axhline(y=average_corr, color='purple', linestyle='--', label='Average Correlation')
+
+    # Set labels and title
+    ax.set_xlabel('Lag')
+    ax.set_ylabel('Correlation')
+    ax.set_title(f'Cross-Correlation for lagged {col} with {target_variable}')
+    ax.legend()
+
+    # Show the plot
+    plt.show()
+
+    return correlations
+
 
 def plot_correlation_matrix(df):
     df = order_by_correlation_size(df)

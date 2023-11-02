@@ -17,7 +17,7 @@ import tabula
 import importlib # code to reload  lib
 from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
-importlib.reload(imd)  # Reload the module # code to reload  lib
+importlib.reload(gf)  # Reload the module # code to reload  lib
 
 
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
 
 
-    mock = False
+    mock = True
     if mock == False:
         try:
             # Code that might raise an exception
@@ -87,6 +87,46 @@ if __name__ == '__main__':
 
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
+
+    df_month.columns
+    # model imc start
+    basic_model_df = df_month.copy()
+
+    basic_model_df.columns
+    basic_model_df = gf.compute_lags_for_custom_ccf_IMC(basic_model_df, 6 )
+    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2018-01-01')
+    corr_crossimc = gf.custom_ccf_IMC(basic_model_df, 'IMC_EXTRA_VIRGEN_EUR_kg')
+    corr_crossimc
+
+    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG1'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(1)
+    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG2'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(2)
+    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG3'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(3)
+    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG4'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(4)
+    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG5'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(5)
+    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG6'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(6)
+    basic_model_df = basic_model_df[['VIRGEN_EXTRA_EUR_kg','VIRGEN_EXTRA_EUR_kg_LAG1','VIRGEN_EXTRA_EUR_kg_LAG2','VIRGEN_EXTRA_EUR_kg_LAG3','VIRGEN_EXTRA_EUR_kg_LAG4','VIRGEN_EXTRA_EUR_kg_LAG5','VIRGEN_EXTRA_EUR_kg_LAG6','IMC_EXTRA_VIRGEN_EUR_kg']]
+
+    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2018-01-01')
+    basic_model_df.to_excel("Output/Excel/df_IMC.xlsx")
+    basic_model_df.columns
+
+    print_doc_descriptive_vars(basic_model_df, target_var='IMC_EXTRA_VIRGEN_EUR_kg', lag_cross_corr=24)
+
+    out = gf.cross_correlation_variable_out_df(basic_model_df, 'VIRGEN_EXTRA_EUR_kg', 'IMC_EXTRA_VIRGEN_EUR_kg', 5)
+
+    out_custom,df = gf.ccustom_ccf(basic_model_df, 'VIRGEN_EXTRA_EUR_kg','IMC_EXTRA_VIRGEN_EUR_kg' ,24)
+
+    out_custom
+    correlation = basic_model_df['VIRGEN_EXTRA_EUR_kg'].corr(basic_model_df['IMC_EXTRA_VIRGEN_EUR_kg'])
+    correlation
+
+    out_custom
+    df
+    out_custom
+    df.columns
+    df.iloc[:,-2:]
+
+    # imc model end
 
 
     # Modelo Basico
@@ -117,12 +157,15 @@ if __name__ == '__main__':
         ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
          'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
 
-    target_variable = 'VIRGEN_EXTRA_EUR_kg'
-    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
+    x_variable = 'VIRGEN_EXTRA_EUR_kg'
+    target_variable= 'IMC_EXTRA_VIRGEN_EUR_kg'
+    #basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
 
+    basic_model_df.columns
 
-    y = basic_model_df_man[target_variable].copy()
-    X = basic_model_df_man.drop(columns=[target_variable])
+    basic_model_df
+    y = basic_model_df[[target_variable]].copy()
+    X = basic_model_df[[x_variable]].copy()
     X = sm.add_constant(X)
     model = sm.OLS(y, X).fit()
     print(model.summary())
@@ -131,6 +174,11 @@ if __name__ == '__main__':
 
 
     # end modelo basico manual
+
+
+
+
+
 
     #selected_datetime = '2021-12-01'
     #df_month_copy= df_month.loc[:selected_datetime].copy()
