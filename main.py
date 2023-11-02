@@ -50,8 +50,7 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
             image_buffer = gf.scatterplot_for_years(df, col, target_var)
             doc.add_picture(image_buffer, width=Inches(3), height=Inches(2))
             doc.add_paragraph('')
-
-            buffer_ret = gf.cross_correlation_variable(df, col, target_var, lag_cross_corr)
+            buffer_ret = gf.custom_ccf(df, col, target_var, lag_cross_corr)
             doc.add_picture(buffer_ret, width=Inches(3), height=Inches(2))
             doc.add_paragraph('')
 
@@ -64,6 +63,38 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
             doc.add_paragraph('')
 
     doc.save('Output/Document/sample_with_pycharm.docx')
+
+
+def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
+    df = df1.copy()
+
+    # calculate the column year in case is not explicited
+    if 'YEAR' not in df.columns:
+        if 'DATE' not in df.columns:
+            df['YEAR'] = df.index.year
+        else:
+            df['YEAR'] = df['DATE'].year
+    correlation_matrix = df.corr()
+
+
+    max_correlation_with_target = correlation_matrix['VIRGEN_EXTRA_EUR_kg'].drop(['YEAR', 'VIRGEN_EXTRA_EUR_kg']).abs().sort_values(ascending=False)
+    ordered_columns = max_correlation_with_target.index.tolist()
+    df = df[['YEAR', 'VIRGEN_EXTRA_EUR_kg'] + ordered_columns]
+    doc = Document()
+    doc.add_heading('Graficas de Todas las Variables 20 10 2023', 0)
+    for col in df:
+        if col != target_var and col != 'YEAR':
+            doc.add_paragraph('Graficas de Variable ' + col)
+            image_buffer = gf.scatterplot_for_years(df, col, target_var)
+            doc.add_picture(image_buffer, width=Inches(3), height=Inches(2))
+            doc.add_paragraph('')
+
+            buff = gf.plot_and_save_variables(df, col, target_var, temp='Monthly')
+            doc.add_picture(buff, width=Inches(5), height=Inches(3))
+            doc.add_paragraph('')
+
+
+    doc.save('Output/Document/Scatterplots_Modelo_basico.docx')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -88,7 +119,9 @@ if __name__ == '__main__':
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
 
-    df_month.columns
+
+
+
     # model imc start
     basic_model_df = df_month.copy()
 
@@ -96,34 +129,20 @@ if __name__ == '__main__':
     basic_model_df = gf.compute_lags_for_custom_ccf_IMC(basic_model_df, 6 )
     basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2018-01-01')
     corr_crossimc = gf.custom_ccf_IMC(basic_model_df, 'IMC_EXTRA_VIRGEN_EUR_kg')
-    corr_crossimc
+    basic_model_df.columns
 
-    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG1'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(1)
-    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG2'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(2)
-    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG3'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(3)
-    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG4'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(4)
-    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG5'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(5)
-    basic_model_df['VIRGEN_EXTRA_EUR_kg_LAG6'] = basic_model_df['VIRGEN_EXTRA_EUR_kg'].shift(6)
-    basic_model_df = basic_model_df[['VIRGEN_EXTRA_EUR_kg','VIRGEN_EXTRA_EUR_kg_LAG1','VIRGEN_EXTRA_EUR_kg_LAG2','VIRGEN_EXTRA_EUR_kg_LAG3','VIRGEN_EXTRA_EUR_kg_LAG4','VIRGEN_EXTRA_EUR_kg_LAG5','VIRGEN_EXTRA_EUR_kg_LAG6','IMC_EXTRA_VIRGEN_EUR_kg']]
-
-    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2018-01-01')
     basic_model_df.to_excel("Output/Excel/df_IMC.xlsx")
     basic_model_df.columns
 
-    print_doc_descriptive_vars(basic_model_df, target_var='IMC_EXTRA_VIRGEN_EUR_kg', lag_cross_corr=24)
+    df_month.columns
+    df_month = df_month[['VIRGEN_EXTRA_EUR_kg','Month','YEAR','SUNFLOWER_OIL','IMC_EXTRA_VIRGEN_EUR_kg']].copy()
+    print_doc_descriptive_vars(basic_model_df_man, target_var='IMC_EXTRA_VIRGEN_EUR_kg', lag_cross_corr=24)
 
     out = gf.cross_correlation_variable_out_df(basic_model_df, 'VIRGEN_EXTRA_EUR_kg', 'IMC_EXTRA_VIRGEN_EUR_kg', 5)
 
     out_custom,df = gf.ccustom_ccf(basic_model_df, 'VIRGEN_EXTRA_EUR_kg','IMC_EXTRA_VIRGEN_EUR_kg' ,24)
 
-    out_custom
-    correlation = basic_model_df['VIRGEN_EXTRA_EUR_kg'].corr(basic_model_df['IMC_EXTRA_VIRGEN_EUR_kg'])
-    correlation
 
-    out_custom
-    df
-    out_custom
-    df.columns
     df.iloc[:,-2:]
 
     # imc model end
@@ -146,26 +165,38 @@ if __name__ == '__main__':
     basic_model_df['EXIS_INIC_18'] = basic_model_df['EXIS_INIC'].shift(18)
     basic_model_df['PRODUCTION_HARVEST_LAG_8'] = basic_model_df['PRODUCTION_HARVEST'].shift(8)
     basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
+
+    basic_model_df_man = basic_model_df[
+        ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
+         'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
+    #modelo basico without lag
+    basic_model_df_man = basic_model_df[
+        ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS','EXIS_INIC', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND']]
+
+    print_doc_scatter_ouliers(basic_model_df_man)
+
     basic_model_df.to_excel("Output/Excel/basic_model_df.xlsx")
 
     gf.plot_correlation_target_variable(basic_model_df, 'IMC_EXTRA_VIRGEN_EUR_kg')
 
     gf.plot_correlation_matrix(basic_model_df)
 
+    basic_model_df.columns
     # manual, stepwise omitted
     basic_model_df_man = basic_model_df[
         ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
          'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
 
     x_variable = 'VIRGEN_EXTRA_EUR_kg'
-    target_variable= 'IMC_EXTRA_VIRGEN_EUR_kg'
+    target_variable= 'VIRGEN_EXTRA_EUR_kg'
+    basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')
     #basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
 
     basic_model_df.columns
 
-    basic_model_df
-    y = basic_model_df[[target_variable]].copy()
-    X = basic_model_df[[x_variable]].copy()
+    basic_model_df_man
+    y = basic_model_df_man[[target_variable]].copy()
+    X = basic_model_df_man.drop(columns=[target_variable]).copy()
     X = sm.add_constant(X)
     model = sm.OLS(y, X).fit()
     print(model.summary())
