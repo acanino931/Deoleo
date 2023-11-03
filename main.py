@@ -28,6 +28,7 @@ importlib.reload(gf)  # Reload the module # code to reload  lib
 
 
 def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_corr =24):
+    # THE CCF USED HERE STARTS FROM LAG 1
     df = df1.copy()
 
     # calculate the column year in case is not explicited
@@ -66,6 +67,8 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
 
 
 def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
+
+
     df = df1.copy()
 
     # calculate the column year in case is not explicited
@@ -77,18 +80,32 @@ def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
     correlation_matrix = df.corr()
 
 
-    max_correlation_with_target = correlation_matrix['VIRGEN_EXTRA_EUR_kg'].drop(['YEAR', 'VIRGEN_EXTRA_EUR_kg']).abs().sort_values(ascending=False)
+    max_correlation_with_target = correlation_matrix[target_var].drop(['YEAR', target_var]).abs().sort_values(ascending=False)
     ordered_columns = max_correlation_with_target.index.tolist()
-    df = df[['YEAR', 'VIRGEN_EXTRA_EUR_kg'] + ordered_columns]
+    df = df[['YEAR', target_var] + ordered_columns]
     doc = Document()
     doc.add_heading('Graficas de Todas las Variables 20 10 2023', 0)
+    df_outlier = gf.mark_outliers(df, target_var)
+    outlier_column = df_outlier.columns[1]
+    outlier_count = df_outlier[outlier_column].sum()
+    if outlier_count > 0:
+        img = gf.plot_time_series_with_outliers(df_outlier, target_var, target_var +'_is_outlier')
+        doc.add_paragraph('Graficas de Outliers de la variable objetivo: ' + target_var)
+        doc.add_picture(img, width=Inches(4), height=Inches(2.5))
+        doc.add_paragraph('')
     for col in df:
         if col != target_var and col != 'YEAR':
             doc.add_paragraph('Graficas de Variable ' + col)
             image_buffer = gf.scatterplot_for_years(df, col, target_var)
             doc.add_picture(image_buffer, width=Inches(3), height=Inches(2))
             doc.add_paragraph('')
-
+            df_outlier = gf.mark_outliers(df, col)
+            outlier_column = df_outlier.columns[1]
+            outlier_count = df_outlier[outlier_column].sum()
+            if outlier_count > 0:
+                img = gf.plot_time_series_with_outliers(df_outlier, col, col + '_is_outlier')
+                doc.add_picture(img, width=Inches(4), height=Inches(2.5))
+                doc.add_paragraph('')
             buff = gf.plot_and_save_variables(df, col, target_var, temp='Monthly')
             doc.add_picture(buff, width=Inches(5), height=Inches(3))
             doc.add_paragraph('')
@@ -101,7 +118,7 @@ if __name__ == '__main__':
 
 
 
-    mock = True
+    mock = False
     if mock == False:
         try:
             # Code that might raise an exception
@@ -119,42 +136,40 @@ if __name__ == '__main__':
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
 
-
-
-
-    # model imc start
-    basic_model_df = df_month.copy()
-
-    basic_model_df.columns
-    basic_model_df = gf.compute_lags_for_custom_ccf_IMC(basic_model_df, 6 )
-    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2018-01-01')
-    corr_crossimc = gf.custom_ccf_IMC(basic_model_df, 'IMC_EXTRA_VIRGEN_EUR_kg')
-    basic_model_df.columns
-
-    basic_model_df.to_excel("Output/Excel/df_IMC.xlsx")
-    basic_model_df.columns
-
     df_month.columns
-    df_month = df_month[['VIRGEN_EXTRA_EUR_kg','Month','YEAR','SUNFLOWER_OIL','IMC_EXTRA_VIRGEN_EUR_kg']].copy()
-    print_doc_descriptive_vars(basic_model_df_man, target_var='IMC_EXTRA_VIRGEN_EUR_kg', lag_cross_corr=24)
-
-    out = gf.cross_correlation_variable_out_df(basic_model_df, 'VIRGEN_EXTRA_EUR_kg', 'IMC_EXTRA_VIRGEN_EUR_kg', 5)
-
-    out_custom,df = gf.ccustom_ccf(basic_model_df, 'VIRGEN_EXTRA_EUR_kg','IMC_EXTRA_VIRGEN_EUR_kg' ,24)
 
 
-    df.iloc[:,-2:]
 
-    # imc model end
+
+    # graficas Modelo basico Review :
+    df_month = df_month.fillna(method='ffill')
+    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS']].copy()
+    basic_model_df['TOTAL_CONS'] = basic_model_df['INNER_CONS'] + basic_model_df['EXPORTS']
+   # basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
+
+    #print_doc_descriptive_vars(basic_model_df, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
+    #END  # graficas Modelo basico Review
+
+    # SECOND VERSION Modelo Basico
+
+    basic_model_df['IMPORTS_LAG_21'] = basic_model_df['IMPORTS'].shift(21)
+    basic_model_df['TOTAL_CONS_LAG_21'] = basic_model_df['TOTAL_CONS'].shift(12)
+    basic_model_df['PRODUCTION_HARVEST_LAG_8'] = basic_model_df['PRODUCTION_HARVEST'].shift(8)
+    basic_model_df['EXPORTS_LAG_12'] = basic_model_df['EXPORTS'].shift(12)
+    basic_model_df['TOTAL_DEMAND_LAG_12'] = basic_model_df['TOTAL_DEMAND'].shift(12)
+    basic_model_df['PRODUCTION_18'] = basic_model_df['PRODUCTION'].shift(18)
+    basic_model_df['INTERNAL_DEMAND_12'] = basic_model_df['INTERNAL_DEMAND'].shift(12)
+    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
+
+    basic_model_df
+
 
 
     # Modelo Basico
 
     # pretreat variables :
     df_month = df_month.fillna(method='ffill')
-    basic_model_df = df_month[
-        ['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST',
-         'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
+    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
     basic_model_df = df_month.copy()
     basic_model_df['TOTAL_CONS'] = basic_model_df['INNER_CONS'] + basic_model_df['EXPORTS']
     basic_model_df['EXPORTS_LAG15'] = basic_model_df['EXPORTS'].shift(15)
@@ -168,10 +183,10 @@ if __name__ == '__main__':
 
     basic_model_df_man = basic_model_df[
         ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
-         'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
+         'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND','PRODUCTION_HARVEST']]
     #modelo basico without lag
-    basic_model_df_man = basic_model_df[
-        ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS','EXIS_INIC', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND']]
+    #basic_model_df_man = basic_model_df[['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS','EXIS_INIC', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND']]
+    basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')
 
     print_doc_scatter_ouliers(basic_model_df_man)
 
@@ -192,22 +207,79 @@ if __name__ == '__main__':
     basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')
     #basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
 
-    basic_model_df.columns
+    #original version
+    basic_model_df_man = basic_model_df[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS','PRODUCTION', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND', 'TOTAL_DEMAND','TOTAL_CONS', 'IMPORTS_LAG_21', 'TOTAL_CONS_LAG_21','PRODUCTION_HARVEST_LAG_8', \
+                        'EXPORTS_LAG_12', 'TOTAL_DEMAND_LAG_12','PRODUCTION_18', 'INTERNAL_DEMAND_12']]
 
-    basic_model_df_man
+    basic_model_df_man = basic_model_df[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'INNER_CONS','PRODUCTION', 'PRODUCTION_HARVEST','TOTAL_CONS', 'PRODUCTION_HARVEST_LAG_8', \
+                       'PRODUCTION_18', 'INTERNAL_DEMAND_12']]
+
+    # comes from stepwise
+    basic_model_df_man = basic_model_df_man[col_selected]
+    basic_model_df_man.columns
+    basic_model_df_man= basic_model_df_man.drop(columns=['IMPORTS_LAG_21']).copy()
+
+    basic_model_df_man.columns
+    target_variable = 'VIRGEN_EXTRA_EUR_kg'
     y = basic_model_df_man[[target_variable]].copy()
     X = basic_model_df_man.drop(columns=[target_variable]).copy()
     X = sm.add_constant(X)
     model = sm.OLS(y, X).fit()
     print(model.summary())
 
-
-
+    #original
+    gf.plot_correlation_matrix(basic_model_df_man)
+    # step
+    gf.plot_correlation_matrix(basic_model_df_man[col_selected])
 
     # end modelo basico manual
 
+    # start stepwise
+
+    basic_model_step = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
+    df_step = rf.stepwise_eliminating(basic_model_df_man, 'VIRGEN_EXTRA_EUR_kg', 8)
+    print(df_step.iloc[:, 0:4])
+    iteration_selected = 8
+    list(df_step.iloc[iteration_selected-1,4 :])
+    rf.save_model_summary_to_file(basic_model_df_man, iteration_selected,
+                                  f"Output/Document/regression_summary_basic_model_stepwise_{iteration_selected}_original_2005_data.txt")
+    col_selected = df_step.loc[df_step.index[iteration_selected - 1], 'Actual_cols']
+
+    col_selected
+    basic_model_df_bck = basic_model_df[col_selected].copy()
+    len(basic_model_df_bck['VIRGEN_EXTRA_EUR_kg'])
+    #  df_pred, MSFE,MAPE = rf.back_testing_actual_time(basic_model_df_bck,50, 24, 'VIRGEN_EXTRA_EUR_kg') # montly model 50 obs out # 24 horizons previewd
+    # df_pred.columns
+    df_pred, MSFE, MAPE = rf.back_testing_regression(basic_model_df_bck, 50, 24,
+                                                     'VIRGEN_EXTRA_EUR_kg')  # montly model 50 obs out # 24 horizons previewd
+
+    # end stepwise
+
+    # model imc start
+    basic_model_df = df_month.copy()
+
+    basic_model_df.columns
+    basic_model_df = gf.compute_lags_for_custom_ccf_IMC(basic_model_df, 6 )
+    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2018-01-01')
+    corr_crossimc = gf.custom_ccf_IMC(basic_model_df, 'IMC_EXTRA_VIRGEN_EUR_kg')
+    basic_model_df.columns
+
+    basic_model_df.to_excel("Output/Excel/df_IMC.xlsx")
+    basic_model_df.columns
+
+    df_month.columns
+    df_month1 = df_month[['VIRGEN_EXTRA_EUR_kg','Month','YEAR','SUNFLOWER_OIL','IMC_EXTRA_VIRGEN_EUR_kg']].copy()
+    df_month1 = rf.eliminate_rows_from_date(df_month1, '2018-01-01')
+    print_doc_descriptive_vars(df_month1, target_var='IMC_EXTRA_VIRGEN_EUR_kg', lag_cross_corr=6)
+
+    out = gf.cross_correlation_variable_out_df(basic_model_df, 'VIRGEN_EXTRA_EUR_kg', 'IMC_EXTRA_VIRGEN_EUR_kg', 5)
+
+    out_custom,df = gf.ccustom_ccf(basic_model_df, 'VIRGEN_EXTRA_EUR_kg','IMC_EXTRA_VIRGEN_EUR_kg' ,24)
 
 
+    df.iloc[:,-2:]
+
+    # imc model end
 
 
 
@@ -237,7 +309,7 @@ if __name__ == '__main__':
 
 # 1st basic model
     # consider to add stock oil
-    basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC','IMPORTS','EXPORTS', 'PRODUCTION','PRODUCTION_HARVEST','INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
+    #basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC','IMPORTS','EXPORTS', 'PRODUCTION','PRODUCTION_HARVEST','INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
 
 
 
@@ -248,24 +320,11 @@ if __name__ == '__main__':
  #   basic_model_df =  df_month[['VIRGEN_EXTRA_EUR_kg','IMPORTS','EXPORTS']].copy()
 
 
-    basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
-    df_step = rf.stepwise_eliminating(basic_model_df_man,'VIRGEN_EXTRA_EUR_kg',2)
-    print(df_step.iloc[:, 0:4])
-    iteration_selected = 1
-    list (df_step.iloc[iteration_selected,:5])
-    rf.save_model_summary_to_file(basic_model_df_man, iteration_selected, f"Output/Document/regression_summary_basic_model_stepwise_{iteration_selected}_original_2005_data.txt")
-    col_selected = df_step.loc[df_step.index[iteration_selected-1],'Actual_cols']
-
-    basic_model_df_bck = basic_model_df[col_selected].copy()
-    len(basic_model_df_bck['VIRGEN_EXTRA_EUR_kg'])
-  #  df_pred, MSFE,MAPE = rf.back_testing_actual_time(basic_model_df_bck,50, 24, 'VIRGEN_EXTRA_EUR_kg') # montly model 50 obs out # 24 horizons previewd
-    #df_pred.columns
-    df_pred, MSFE, MAPE = rf.back_testing_regression(basic_model_df_bck, 50, 24 ,'VIRGEN_EXTRA_EUR_kg')  # montly model 50 obs out # 24 horizons previewd
-
-
     df_pred
     MAPE
     basic_model_df_bck.columns
+
+
 
     basic_model_df.columns
 
@@ -318,28 +377,6 @@ if __name__ == '__main__':
     print(X[X.isnull()])
 
     X.info()
-
-    # Generate some example data
-    np.random.seed(0)
-    X = np.random.rand(100, 1)  # Independent variable
-    y = 2 * X + 1 + np.random.randn(100, 1)  # Dependent variable with noise
-
-    # Add a constant term to the independent variable (intercept)
-    X = sm.add_constant(X)
-
-    # Fit a simple OLS linear regression model
-    model = sm.OLS(y, X).fit()
-
-    # Predict new values
-    new_X = np.array([[1, 0.5], [1, 0.75]])  # Example data for prediction
-    predictions = model.predict(new_X)
-
-    # Display the model summary and predictions
-    print(X)
-    print(model.summary())
-    print("Predictions:", predictions)
-
-    predictions
 
 
 

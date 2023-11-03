@@ -143,7 +143,7 @@ def load_data():
         # Creating the Spanish demand variable
         additional_exog['INTERNAL_DEMAND'] = additional_exog['INNER_CONS'] + additional_exog['IMPORTS']
         # creating the spanish prouction DEMAND = TOTAL DEMAND
-        additional_exog['EXTERNAL_DEMAND'] = additional_exog['INNER_CONS'] + additional_exog['EXPORTS']
+        additional_exog['TOTAL_CONS'] = additional_exog['INNER_CONS'] + additional_exog['EXPORTS']
 
         additional_exog['TOTAL_DEMAND'] = additional_exog['INNER_CONS'] + additional_exog['EXPORTS'] + additional_exog['IMPORTS']
 

@@ -147,6 +147,7 @@ def rolling_corr_post(variable1, variable2, ventana):
 
 
 def print_correlation_over_time(df, col, target_variable):
+
     # this function show how the rolling correlation between the 2 variable analyzed in the same moment has
     # changed over time
     for variable_explicativa in [col]:
@@ -222,6 +223,7 @@ def cross_correlation_variable_out_df(df, col, target_col, nlags):
 
 
 def custom_ccf(df,col, target_variable, nlags):
+    # THE CCF USED HERE STARTS FROM LAG 1  THE CORRELATION AT THE SAME MOMENT IS NOT TAKEN
     # Create a copy of the dataframe to avoid modifying the original
     df_copy = df.copy()
 
@@ -278,6 +280,8 @@ def compute_lags_for_custom_ccf_IMC(df,nlags, col_to_lag = 'VIRGEN_EXTRA_EUR_kg'
 
 
 def custom_ccf_IMC(df,col='VIRGEN_EXTRA_EUR_kg', target_variable='IMC_EXTRA_VIRGEN_EUR_kg'):
+    # THE CCF USED HERE STARTS FROM LAG 0  THE CORRELATION AT THE SAME MOMENT IS CONSIDERED
+    # IF U WANT TO MODFIFY AND UNIFORM IT JUST ADD THE NOT LAGGED COLUMN IN THE IF CONDITION
     # Create a copy of the dataframe to avoid modifying the original
     df_copy = df.copy()
 
@@ -359,7 +363,7 @@ def mark_outliers(df, column_name):
     # Create a new column 'IsOutlier' in the DataFrame
     df1[column_name+'_is_outlier'] = np.where((df[column_name] > Q3 + outlier_threshold) | (df[column_name] < Q1 - outlier_threshold), 1, 0)
 
-    return df1[column_name+'_is_outlier']
+    return df1
 
 
 def plot_time_series_with_outliers(df, column_name, is_outlier_column):
@@ -383,4 +387,8 @@ def plot_time_series_with_outliers(df, column_name, is_outlier_column):
     ax.legend()
 
     # Show the plot
-    plt.show()
+    image_buffer = BytesIO()
+    plt.savefig(image_buffer, bbox_inches='tight')
+    image_buffer.seek(0)
+    plt.close()
+    return image_buffer

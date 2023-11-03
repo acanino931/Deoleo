@@ -181,3 +181,62 @@ def back_testing_regression(df, test_sample, horizontes, target_variable='VIRGEN
     df_pred = pd.DataFrame(data_pred)
 
     return df_pred, MSFE, MAPE
+
+
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+def eliminate_multicollinearity(df, target_var, num_iterations=10, correlation_threshold=0.7):
+   # function to be tested to eliminate multicollinearity
+    results = []
+
+    for iteration in range(num_iterations):
+        y = df[target_var]
+        X = df.drop([target_var], axis=1)
+
+        # Add a constant to the predictor matrix (for intercept in the regression)
+        X = sm.add_constant(X)
+
+        # Fit a linear regression model
+        model = sm.OLS(y, X).fit()
+
+        # Calculate the correlation matrix for predictor variables
+        correlation_matrix = X.corr()
+
+        # Find variables with high covariance
+        high_covariance_pairs = []
+        for i in range(len(correlation_matrix.columns)):
+            for j in range(i + 1, len(correlation_matrix.columns)):
+                if abs(correlation_matrix.iloc[i, j]) > correlation_threshold:
+                    high_covariance_pairs.append((correlation_matrix.columns[i], correlation_matrix.columns[j]))
+
+        # Remove the variable less correlated with the target variable in each high covariance pair
+        for var1, var2 in high_covariance_pairs:
+            if abs(model.pvalues[var1]) > abs(model.pvalues[var2]):
+                X = X.drop(var1, axis=1)
+            else:
+                X = X.drop(var2, axis=1)
+
+        # Re-fit the model with the selected variables
+        new_model = sm.OLS(y, X).fit()
+        r_squared = new_model.rsquared
+        multicollinearity_metric = np.mean(np.abs(correlation_matrix.values) - np.eye(len(X.columns)))
+
+        results.append({
+            'Iteration': iteration + 1,
+            'R-squared': r_squared,
+            'Selected Columns': list(X.columns),
+            'Multicollinearity Metric': multicollinearity_metric
+        })
+
+    results_df = pd.DataFrame(results)
+    return results_df
+
+# Example usage prevuois funct :
+# Replace 'your_data.csv' and 'YourTargetVariable' with your data and target variable
+#df = pd.read_csv('your_data.csv')
+#target_var = 'YourTargetVariable'
+#results_df = eliminate_multicollinearity(df, target_var, num_iterations=10)
+#print(results_df)
+
