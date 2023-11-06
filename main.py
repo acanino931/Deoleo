@@ -9,6 +9,7 @@ from PIL import Image
 from io import BytesIO
 from src import importing_data as imd
 from src import Regression_Functions as rf
+from src import Aux_functions as aux
 import numpy as np
 import statsmodels.api as sm
 import os
@@ -27,7 +28,7 @@ importlib.reload(gf)  # Reload the module # code to reload  lib
 
 
 
-def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_corr =24):
+def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_corr =24,yearly_production = True):
     # THE CCF USED HERE STARTS FROM LAG 1
     df = df1.copy()
 
@@ -37,6 +38,10 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
             df['YEAR'] = df.index.year
         else:
             df['YEAR'] = df['DATE'].year
+    if yearly_production == True:
+        if 'HARVEST_YEAR'not in df.columns:
+            df['HARVEST_YEAR'] = df['YEAR'].shift(-2)
+
     correlation_matrix = df.corr()
 
 
@@ -46,9 +51,9 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
     doc = Document()
     doc.add_heading('Graficas de Todas las Variables 20 10 2023', 0)
     for col in df:
-        if col != target_var and col != 'YEAR':
+        if col != target_var and col != 'YEAR' and col != 'HARVEST_YEAR':
             doc.add_paragraph('Graficas de Variable ' + col)
-            image_buffer = gf.scatterplot_for_years(df, col, target_var)
+            image_buffer = gf.scatterplot_for_years_yearly_var(df, col, target_var)
             doc.add_picture(image_buffer, width=Inches(3), height=Inches(2))
             doc.add_paragraph('')
             buffer_ret = gf.custom_ccf(df, col, target_var, lag_cross_corr)
@@ -67,7 +72,6 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
 
 
 def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
-
 
     df = df1.copy()
 
@@ -116,8 +120,6 @@ def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-
-
     mock = False
     if mock == False:
         try:
@@ -136,10 +138,45 @@ if __name__ == '__main__':
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
 
-    df_month.columns
+    df_month
+    df_test = basic_model_df.copy()
+    # analisis harvest production
+ #   df_test = rf.eliminate_rows_after_date(df_test, '2021-12-01')
+ #   df_test = rf.eliminate_rows_from_date(df_test, '2005-10-01')
+
+    filtered_df = df_month[(df_month['Month'] >= 3) & (df_month['Month'] <= 5)]
+    filtered_df
+    aggregated_df = filtered_df.groupby('YEAR')['PRODUCTION'].sum().reset_index()
+    aggregated_df
+    aggregated_df.index = pd.to_datetime(aggregated_df.YEAR, format='%Y')
+    aggregated_df.index.freq = pd.tseries.offsets.YearBegin()
+    aggregated_df = aggregated_df.resample('MS').ffill()
+    max_index = aggregated_df.index.max()
+    next_month = max_index + pd.DateOffset(months=1)
+    first_day_of_next_month = pd.Timestamp(year=next_month.year, month=next_month.month, day=1)
+    date_string = first_day_of_next_month.strftime('%Y-%m-%d')
+    extended_date_index = pd.date_range(start= date_string, end='2023-12-01', freq='MS')
+    extended_df = pd.DataFrame(index=extended_date_index)
+    aggregated_df_fin = pd.concat([aggregated_df, extended_df], axis=0)
+    aggregated_df_fin.fillna(method='ffill',inplace = True)
+    aggregated_df_fin
+    aggregated_df_fin.rename(columns={'PRODUCTION': 'PRODUCTION_POST_MARCH'}, inplace=True)
+    aggregated_df_fin.drop(columns = ['YEAR'],inplace=True)
+    aggregated_df_fin = pd.merge(df_test, aggregated_df_fin, right_index=True,left_index=True, how= 'left')
+    aggregated_df_fin['PRODUCTION_POST_MARCH'] = aggregated_df_fin['PRODUCTION_POST_MARCH'].shift(2)
+    aggregated_df_fin['PERCENTAGE_HARVEST_POST_MARCH'] = aggregated_df_fin['PRODUCTION_POST_MARCH'] / aggregated_df_fin['PRODUCTION_HARVEST'] *100
+    aggregated_df_fin.PERCENTAGE_HARVEST_POST_MARCH.unique()
+    aggregated_df_fin.PERCENTAGE_HARVEST_POST_MARCH.mean()
+    aggregated_df_fin['PRODUCTION_BEFORE_MARCH'] = np.where((df_month['Month'] > 2) & (df_month['Month'] < 9), 0,df_month['PRODUCTION'])
+    aggregated_df_fin.to_excel("Prova.xlsx")
 
 
 
+
+
+    #df_test = df_month[['VIRGEN_EXTRA_EUR_kg', 'VIRGEN_EUR_kg','HARVEST_YEAR','PRODUCTION_HARVEST','YEAR']]
+    print_doc_descriptive_vars(df_test, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
+    print_doc_scatter_ouliers(df_test, target_var='VIRGEN_EXTRA_EUR_kg')
 
     # graficas Modelo basico Review :
     df_month = df_month.fillna(method='ffill')
@@ -187,6 +224,8 @@ if __name__ == '__main__':
     #modelo basico without lag
     #basic_model_df_man = basic_model_df[['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS','EXIS_INIC', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND']]
     basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')
+
+
 
     print_doc_scatter_ouliers(basic_model_df_man)
 

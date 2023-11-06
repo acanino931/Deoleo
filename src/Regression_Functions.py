@@ -92,6 +92,14 @@ def eliminate_rows_from_date(df,specific_date ):
     df1 = df1.fillna(method='ffill').fillna(method='bfill')
     return df1
 
+def eliminate_rows_after_date(df,specific_date ):
+    # this function make you select a the df from a specific date
+    # filling all the null values
+    selected_datetime = pd.to_datetime(specific_date)
+    df1 = df.loc[:selected_datetime].copy()
+    df1 = df1.fillna(method='ffill').fillna(method='bfill')
+    return df1
+
 def back_testing_SARIMAX( df,test_sample,horizontes, target_variable = 'VIRGEN_EXTRA_EUR_kg' ):
     # the X are not forecasted, use with actual values
     y = df[target_variable].copy()
@@ -239,4 +247,57 @@ def eliminate_multicollinearity(df, target_var, num_iterations=10, correlation_t
 #target_var = 'YourTargetVariable'
 #results_df = eliminate_multicollinearity(df, target_var, num_iterations=10)
 #print(results_df)
+
+
+
+
+def rolling_regression(df, target_variable, window_size):
+    # calculate the regression for a rolling windows, TO be tested:
+    #todo consider significativity and stepwise inside the rolling
+    results = []
+    n = len(df)
+
+    for end_date in range(window_size, n + 1):
+        start_date = end_date - window_size
+
+        # Select the data for the current window
+        window_data = df.iloc[start_date:end_date]
+
+        # Define the target variable and explanatory variables
+        y = window_data[target_variable]
+        X = window_data.drop(columns=[target_variable, 'DATE'])
+
+        # Add a constant (intercept) to the model
+        X = sm.add_constant(X)
+
+        # Fit the linear regression model
+        model = sm.OLS(y, X).fit()
+
+        # Store the regression results
+        r2 = model.rsquared
+        p_values = model.pvalues
+        result_dict = ({
+            'Start Date': window_data['DATE'].iloc[0],
+            'End Date': window_data['DATE'].iloc[-1],
+            'R-squared': r2,
+
+        })
+        # Add p-values to the dictionary
+        for col, p_value in zip(X.columns, p_values):
+            result_dict[f'p-value, {col}'] = p_value
+
+        results.append(result_dict)
+    # usage example :
+    #target_variable = 'VIRGEN_EXTRA_EUR_kg'
+    #window_size = 30
+
+    # Run the rolling regression
+    #rolling_results = rolling_regression(datos, target_variable, window_size)
+
+    #rolling_results.to_excel('results_basic_model.xlsx')
+
+    return pd.DataFrame(results)
+
+
+
 

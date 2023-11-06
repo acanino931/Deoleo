@@ -354,19 +354,25 @@ def load_data():
         # from october until march we dont consider any shifting and for the we start to count from the beggining
         # df_month['PRODUCTION_shift'] =  np.where((df_month['Month'] > 9) | (df_month['Month'] < 5), 0, 0)
 
-        # aggregating the production data per year for the harvest reference year
-        df_production = df_month[['PRODUCTION', 'HARVEST_YEAR']].copy()
+        # adding the variable PRODUCTION_BEFORE_MARCH  we are cutting the value of the harvest to what is available in March not considering the rest.
+        df_month['PRODUCTION_BEFORE_MARCH'] =  np.where((df_month['Month'] > 2) & (df_month['Month'] < 9),0,df_month['PRODUCTION'])
 
-        df_production['PRODUCTION'] = df_production[['PRODUCTION']].fillna(0)
+        # aggregating the production data per year for the harvest reference year
+        df_production = df_month[['PRODUCTION_BEFORE_MARCH', 'HARVEST_YEAR']].copy()
+
+        df_month.drop(columns=['PRODUCTION_BEFORE_MARCH'],inplace = True)
+
+        df_production['PRODUCTION_BEFORE_MARCH'] = df_production[['PRODUCTION_BEFORE_MARCH']].fillna(0)
         df_production_agg = pd.DataFrame()
 
-        df_production_agg['PRODUCTION_HARVEST'] = df_production.groupby('HARVEST_YEAR')['PRODUCTION'].sum()
+        df_production_agg['PRODUCTION_HARVEST'] = df_production.groupby('HARVEST_YEAR')['PRODUCTION_BEFORE_MARCH'].sum()
 
 
         # Including the aggregated production in the main df
         df_production_agg.index = pd.to_datetime(df_production_agg.index, format='%Y')
         df_production_agg.index.freq = pd.tseries.offsets.YearBegin()
         df_production_agg= df_production_agg.resample('MS').ffill()
+
 
         # we start considering the effect from the quantity of the harvest from March since the new harvest it's nearly over
 

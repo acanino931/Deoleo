@@ -94,6 +94,91 @@ def scatterplot_for_years(df, col, target_variable):
     return image_buffer
 
 
+def scatterplot_for_years_yearly_var(df1, col, target_variable):
+    # in case there is a var like PRODUCTION IT SHOW A SCATTERPLOT WITH JUST THE MEAN VALUE OF THE YEAR
+    df = df1.copy()
+    if  'PRODUCTION_HARVEST' in col:
+
+        #target_variable = 'VIRGEN_EXTRA_EUR_kg'
+        #col = 'PRODUCTION_HARVEST'
+        df_year = df[[target_variable, col, 'HARVEST_YEAR']].copy()
+        df_year = df_year.fillna(method='ffill').fillna(method='bfill')
+
+        df = df_year.groupby('HARVEST_YEAR').mean().reset_index()
+        df.rename(columns={'HARVEST_YEAR': 'YEAR'}, inplace = True)
+
+
+    # Create a figure and axes for each variable, making it one-third smaller
+    fig, ax = plt.subplots(figsize=(7, 4))
+
+    # Extract unique 'YEAR' values
+    unique_years = df['YEAR'].unique()
+    num_unique_years = len(unique_years)
+
+    # Create a custom colormap based on the number of unique years
+    colors = plt.get_cmap('viridis')(np.linspace(0, 1, num_unique_years))
+    custom_cmap = mcolors.ListedColormap(colors)
+
+    # Create a normalization object for the colormap
+    norm = mcolors.Normalize(vmin=unique_years.min(), vmax=unique_years.max())
+
+    # Extract data for the scatter plot
+
+    # first not null value
+    x_data = df.loc[df.index[df[col].notnull()].min():]
+    x_data = x_data[col].fillna(method='ffill').fillna(method='bfill')
+    df.loc[x_data.index[0:], target_variable]
+
+    y_data = df.loc[x_data.index[0:], target_variable]
+
+    # y_data = df[target_variable]
+    year_values = df.loc[x_data.index[0:], 'YEAR']
+
+    # Create scatter plot
+    scatter = ax.scatter(x_data, y_data, c=year_values, cmap=custom_cmap, norm=norm)
+
+    # Fit the linear regression model
+    x_data_filled = x_data.fillna(method='ffill').fillna(method='bfill')
+    X = sm.add_constant(x_data_filled)
+    model = sm.OLS(y_data, X).fit()
+
+    # Get the coefficients and R-squared value
+    intercept, slope = model.params
+    r_squared = model.rsquared
+
+    # Add regression line to the scatter plot
+    ax.plot(x_data_filled, intercept + slope * x_data_filled, color='red', label=f'Line')
+
+    # Display R-squared value on the plot
+    ax.text(0.05, 0.9, f'R-squared = {r_squared:.2f}', transform=ax.transAxes, fontsize=10, color='red')
+
+    # Set labels and title for the plot
+    ax.set_xlabel(col)
+    ax.set_ylabel(target_variable)
+    ax.set_title(f'Scatter Plot of {col}')
+
+    # Create legend elements based on unique 'YEAR' values
+    legend_elements = [mlines.Line2D([], [], marker='o', color='w', label=str(year),
+                                     markersize=6, markerfacecolor=custom_cmap(norm(year)))
+                       for year in unique_years]
+
+    # Add legend with legend elements on the right
+    ax.legend(handles=legend_elements, title='YEAR', loc='center left', bbox_to_anchor=(1, 0.5), ncol=2)
+
+    # Save the figure as an image (PNG format)
+    #  plt.savefig(f'scatter_plot_{col}.png', bbox_inches='tight')
+
+    # Show the plot
+    # plt.show()
+    print(col)
+    image_buffer = BytesIO()
+    image_buffer.seek(0)
+    plt.savefig(image_buffer, bbox_inches='tight')
+    plt.close()
+    return image_buffer
+
+
+
 def plot_and_save_variables(df, y1_var_name, y2_var_name, temp='Monthly'):
     # Obtener los valores de las variables
     x = df.index
