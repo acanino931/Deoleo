@@ -18,7 +18,7 @@ import tabula
 import importlib # code to reload  lib
 from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
-importlib.reload(gf)  # Reload the module # code to reload  lib
+importlib.reload(aux)  # Reload the module # code to reload  lib
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -116,7 +116,7 @@ def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
 
     doc.save('Output/Document/Scatterplots_Modelo_basico.docx')
 
-def include_meteo_vaiables(df =df_month):
+def include_meteo_vaiables(df):
     df_cordoba = imd.import_meteo_single_province("Datos/Datos_Cordoba", "Cordoba")
     df_jaen = imd.import_meteo_single_province("Datos/Datos_Jaen", "Jaen")
     df_meteo = df_jaen.merge(df_cordoba, left_index=True, right_index=True, how='left')
@@ -149,7 +149,13 @@ if __name__ == '__main__':
 
 
     basic_model_df_man
-    result_rolling = rf.rolling_regression(basic_model_df_man, 'VIRGEN_EXTRA_EUR_kg', 40)
+    ls_ventanas= [24,30,36,40,50]
+    for window in ls_ventanas:
+        result_rolling = rf.rolling_regression(basic_model_df_man, 'VIRGEN_EXTRA_EUR_kg', 40)
+        result_rolling= aux.add_average_row(result_rolling)
+        result_rolling.to_excel(f"Output/Rolling_Regression/Rolling{window}.xlsx")
+
+
     result_rolling.to_excel("Prova.xlsx")
 
 
@@ -166,7 +172,6 @@ if __name__ == '__main__':
     # graficas Modelo basico Review :
     df_month = df_month.fillna(method='ffill')
     basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS']].copy()
-    basic_model_df['TOTAL_CONS'] = basic_model_df['INNER_CONS'] + basic_model_df['EXPORTS']
    # basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
 
     #print_doc_descriptive_vars(basic_model_df, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
@@ -204,7 +209,7 @@ if __name__ == '__main__':
 
     basic_model_df_man = basic_model_df[
         ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
-         'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND','PRODUCTION_HARVEST']]
+'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
     #modelo basico without lag
     #basic_model_df_man = basic_model_df[['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS','EXIS_INIC', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND']]
     basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')

@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="Calculate percentage after after march">
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="meterological 2 included , rolling tested">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prova.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/prova.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/aux_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -207,7 +203,14 @@
       <option name="project" value="LOCAL" />
       <updated>1699284001951</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="meterological 2 included , rolling tested">
+      <created>1699317048169</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1699317048169</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -244,6 +247,7 @@
     <MESSAGE value="CCF correct added" />
     <MESSAGE value="eliminate multicollinearity to be tested" />
     <MESSAGE value="Calculate percentage after after march" />
-    <option name="LAST_COMMIT_MESSAGE" value="Calculate percentage after after march" />
+    <MESSAGE value="meterological 2 included , rolling tested" />
+    <option name="LAST_COMMIT_MESSAGE" value="meterological 2 included , rolling tested" />
   </component>
 </project>

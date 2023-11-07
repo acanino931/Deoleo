@@ -29,6 +29,24 @@ def compute_perc_harvest_post_march (df):
     return(average,aggregated_df_fin['PERCENTAGE_HARVEST_POST_MARCH'] )
 
 
+
+def add_average_row(df):
+    means = []
+    for column_name in df.columns:
+        if pd.api.types.is_numeric_dtype(df[column_name]):
+            avg = df[column_name].mean()
+        else:
+            avg = None
+        means.append(avg)
+
+    # Create a new DataFrame with a single row containing the calculated means
+    avg_df = pd.DataFrame([means], columns=df.columns)
+
+    # Concatenate the original DataFrame and the new DataFrame
+    df = pd.concat([df, avg_df], ignore_index=True)
+
+    return df
+
 def group_into_montly_data(df, index:bool, date_col_name ='DATE'):
     if index == False:
         df['DATE'] = pd.to_datetime(df[date_col_name], format='%d/%m/%y')
@@ -51,3 +69,4 @@ def group_into_montly_data(df, index:bool, date_col_name ='DATE'):
     df_monthly_grouped = df_monthly_grouped.rename(columns={'Month_Year': 'DATE'})
 
     return df_monthly_grouped
+
