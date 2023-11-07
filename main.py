@@ -18,7 +18,7 @@ import tabula
 import importlib # code to reload  lib
 from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
-importlib.reload(aux)  # Reload the module # code to reload  lib
+importlib.reload(rf)  # Reload the module # code to reload  lib
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -116,17 +116,17 @@ def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
 
     doc.save('Output/Document/Scatterplots_Modelo_basico.docx')
 
-def include_meteo_vaiables(df):
+def include_meteo_variables(df):
     df_cordoba = imd.import_meteo_single_province("Datos/Datos_Cordoba", "Cordoba")
     df_jaen = imd.import_meteo_single_province("Datos/Datos_Jaen", "Jaen")
     df_meteo = df_jaen.merge(df_cordoba, left_index=True, right_index=True, how='left')
-    df_month = df_month.merge(df_meteo, left_index=True, right_index=True, how='left')
-    return df_month
+    df = df.merge(df_meteo, left_index=True, right_index=True, how='left')
+    return df
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    mock = True
+    mock = False
     if mock == False:
         try:
             # Code that might raise an exception
@@ -144,8 +144,26 @@ if __name__ == '__main__':
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
 
+
+    df_month.columns
+    df_month = df_month[['VIRGEN_EXTRA_EUR_kg']].copy()
     df_month
+    #df_month = include_meteo_variables(df_month)
+   # df_pdf = imd.import_pdf_data()
+    df_month_pdf = imd.include_pdf_data(df_month)
+    df_month_pdf.columns
+    df_month_pdf = rf.eliminate_rows_from_date(df_month_pdf, '2005-10-01')
+
+    df_month_pdf['Produccion UE_TOTAL A + B'].dtype
+    df_month_pdf.to_excel("Prova.xlsx")
+
+
+
+    df_month.columns
+    #df_import_pdf_data()
     #df_test = basic_model_df.copy()
+    print_doc_descriptive_vars(basic_model_df)
+    basic_model_df
 
 
     basic_model_df_man
@@ -195,8 +213,9 @@ if __name__ == '__main__':
     # Modelo Basico
 
     # pretreat variables :
+    PRODUCTION_HARVEST_REAL_EST
     df_month = df_month.fillna(method='ffill')
-    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'TOTAL_CONS']].copy()
+    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION','PRODUCTION_HARVEST_REAL_EST' ,'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'TOTAL_CONS']].copy()
     basic_model_df = df_month.copy()
     basic_model_df['EXPORTS_LAG15'] = basic_model_df['EXPORTS'].shift(15)
     basic_model_df['INTERNAL_DEMAND_LAG_13'] = basic_model_df['INTERNAL_DEMAND'].shift(13)
@@ -247,6 +266,7 @@ if __name__ == '__main__':
     basic_model_df_man.columns
     basic_model_df_man= basic_model_df_man.drop(columns=['IMPORTS_LAG_21']).copy()
 
+    basic_model_df_man = basic_model_df_bck.copy()
     basic_model_df_man.columns
     target_variable = 'VIRGEN_EXTRA_EUR_kg'
     y = basic_model_df_man[[target_variable]].copy()
@@ -264,22 +284,31 @@ if __name__ == '__main__':
 
     # start stepwise
 
+    basic_model_step = basic_model_df.copy()
     basic_model_step = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
-    df_step = rf.stepwise_eliminating(basic_model_df_man, 'VIRGEN_EXTRA_EUR_kg', 8)
+    iteration_selected = 1
+    df_step = rf.stepwise_eliminating(basic_model_step, 'VIRGEN_EXTRA_EUR_kg', iteration_selected)
+    df_step.columns
     print(df_step.iloc[:, 0:4])
-    iteration_selected = 8
-    list(df_step.iloc[iteration_selected-1,4 :])
-    rf.save_model_summary_to_file(basic_model_df_man, iteration_selected,
-                                  f"Output/Document/regression_summary_basic_model_stepwise_{iteration_selected}_original_2005_data.txt")
+
+    rf.save_model_summary_to_file(df_step, iteration_selected)
     col_selected = df_step.loc[df_step.index[iteration_selected - 1], 'Actual_cols']
 
-    col_selected
-    basic_model_df_bck = basic_model_df[col_selected].copy()
-    len(basic_model_df_bck['VIRGEN_EXTRA_EUR_kg'])
+    len(col_selected)
+    basic_model_df_bck = basic_model_step[col_selected].copy()
+    df_step.loc[iteration_selected-1, 'Model_summary']
+   # len(basic_model_df_bck['VIRGEN_EXTRA_EUR_kg'])
     #  df_pred, MSFE,MAPE = rf.back_testing_actual_time(basic_model_df_bck,50, 24, 'VIRGEN_EXTRA_EUR_kg') # montly model 50 obs out # 24 horizons previewd
     # df_pred.columns
+    basic_model_df_bck.columns
+
+    df_result=  rf.back_testing_regression_OLD(basic_model_df_bck, basic_model_df_bck.drop(columns=['VIRGEN_EXTRA_EUR_kg']), 'VIRGEN_EXTRA_EUR_kg')
+    df_result.to_excel("Prova.xlsx")
+
     df_pred, MSFE, MAPE = rf.back_testing_regression(basic_model_df_bck, 50, 24,
                                                      'VIRGEN_EXTRA_EUR_kg')  # montly model 50 obs out # 24 horizons previewd
+
+    MAPE
 
     # end stepwise
 

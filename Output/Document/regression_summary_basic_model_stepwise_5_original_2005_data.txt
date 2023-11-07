@@ -1,28 +1,46 @@
                              OLS Regression Results                            
 ===============================================================================
-Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared:                       0.374
-Model:                             OLS   Adj. R-squared:                  0.365
-Method:                  Least Squares   F-statistic:                     41.55
-Date:                 Wed, 25 Oct 2023   Prob (F-statistic):           4.20e-21
-Time:                         19:58:10   Log-Likelihood:                -215.88
-No. Observations:                  213   AIC:                             439.8
-Df Residuals:                      209   BIC:                             453.2
-Df Model:                            3                                         
+Dep. Variable:     VIRGEN_EXTRA_EUR_kg   R-squared:                       0.860
+Model:                             OLS   Adj. R-squared:                  0.849
+Method:                  Least Squares   F-statistic:                     76.51
+Date:                 Tue, 07 Nov 2023   Prob (F-statistic):           8.61e-76
+Time:                         13:39:16   Log-Likelihood:                -101.38
+No. Observations:                  216   AIC:                             236.8
+Df Residuals:                      199   BIC:                             294.1
+Df Model:                           16                                         
 Covariance Type:             nonrobust                                         
-===================================================================================
-                      coef    std err          t      P>|t|      [0.025      0.975]
------------------------------------------------------------------------------------
-const               4.6469      0.286     16.252      0.000       4.083       5.211
-IMPORTS             0.0609      0.007      8.342      0.000       0.047       0.075
-EXPORTS             0.0272      0.006      4.543      0.000       0.015       0.039
-EXTERNAL_DEMAND    -0.0381      0.005     -7.095      0.000      -0.049      -0.028
+=========================================================================================================
+                                            coef    std err          t      P>|t|      [0.025      0.975]
+---------------------------------------------------------------------------------------------------------
+const                                     9.1900      2.440      3.766      0.000       4.378      14.002
+Importacion UE_TOTAL B)                   0.2288      0.107      2.144      0.033       0.018       0.439
+Consumo UE_TOTAL A + B                    0.1219      0.062      1.961      0.051      -0.001       0.244
+Produccion Total_TOTAL  A                 0.0214      0.015      1.461      0.146      -0.007       0.050
+Produccion Total_TOTAL B                 -0.0272      0.016     -1.698      0.091      -0.059       0.004
+Exportacion UE_TOTAL  A)                -38.5283     88.901     -0.433      0.665    -213.838     136.781
+Exportacion UE_TOTAL A + B               38.5180     88.936      0.433      0.665    -136.861     213.897
+Exportacion UE_TOTAL B)                 -38.3874     89.428     -0.429      0.668    -214.736     137.961
+Consumo Total_TOTAL B                     0.0408      0.032      1.295      0.197      -0.021       0.103
+Importacion Total_TOTAL  A               -0.0509      0.011     -4.538      0.000      -0.073      -0.029
+Consumo UE_TOTAL B)                      -0.1118      0.097     -1.149      0.252      -0.304       0.080
+Consumo Total_TOTAL MONDIAL WORLD         0.0128      0.013      1.010      0.314      -0.012       0.038
+Consumo Total_TOTAL  A                   -0.0281      0.019     -1.482      0.140      -0.065       0.009
+Produccion UE_TOTAL  A)                  -0.0155      0.015     -1.014      0.312      -0.046       0.015
+Exportacion Total_TOTAL A                -0.0229      0.031     -0.744      0.457      -0.084       0.038
+Importacion UE_TOTAL A + B                0.0833      0.018      4.548      0.000       0.047       0.119
+Importacion Total_TOTAL MONDIAL WORLD    -0.0400      0.014     -2.778      0.006      -0.068      -0.012
+Consumo UE_TOTAL  A)                     -0.1077      0.054     -1.976      0.050      -0.215      -0.000
+Produccion Total_TOTAL MONDIAL WORLD     -0.0058      0.002     -3.630      0.000      -0.009      -0.003
+Importacion Total_TOTAL  B                0.0109      0.022      0.487      0.627      -0.033       0.055
 ==============================================================================
-Omnibus:                       24.707   Durbin-Watson:                   0.392
-Prob(Omnibus):                  0.000   Jarque-Bera (JB):               37.247
-Skew:                           0.685   Prob(JB):                     8.16e-09
-Kurtosis:                       4.523   Cond. No.                         848.
+Omnibus:                      100.315   Durbin-Watson:                   0.500
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             1212.549
+Skew:                           1.434   Prob(JB):                    4.99e-264
+Kurtosis:                      14.247   Cond. No.                     2.43e+17
 ==============================================================================
 
 Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
-The 1st Date considered is: 2005-10-01 00:00:00 and the columns with more null values are: {'VIRGEN_EXTRA_EUR_kg': Timestamp('2005-10-01 00:00:00'), 'IMPORTS': Timestamp('2005-10-01 00:00:00'), 'EXPORTS': Timestamp('2005-10-01 00:00:00'), 'EXTERNAL_DEMAND': Timestamp('2005-10-01 00:00:00')}
+[2] The smallest eigenvalue is 1.55e-25. This might indicate that there are
+strong multicollinearity problems or that the design matrix is singular.
+The 1st Date considered is: 2005-10-01 00:00:00 and the columns with more null values are: {'VIRGEN_EXTRA_EUR_kg': Timestamp('2005-10-01 00:00:00'), 'Importacion UE_TOTAL B)': Timestamp('2005-10-01 00:00:00'), 'Consumo UE_TOTAL A + B': Timestamp('2005-10-01 00:00:00'), 'Produccion Total_TOTAL  A': Timestamp('2005-10-01 00:00:00'), 'Produccion Total_TOTAL B': Timestamp('2005-10-01 00:00:00'), 'Exportacion UE_TOTAL  A)': Timestamp('2005-10-01 00:00:00'), 'Exportacion UE_TOTAL A + B': Timestamp('2005-10-01 00:00:00'), 'Exportacion UE_TOTAL B)': Timestamp('2005-10-01 00:00:00'), 'Consumo Total_TOTAL B': Timestamp('2005-10-01 00:00:00'), 'Importacion Total_TOTAL  A': Timestamp('2005-10-01 00:00:00'), 'Consumo UE_TOTAL B)': Timestamp('2005-10-01 00:00:00'), 'Consumo Total_TOTAL MONDIAL WORLD': Timestamp('2005-10-01 00:00:00'), 'Consumo Total_TOTAL  A': Timestamp('2005-10-01 00:00:00'), 'Produccion UE_TOTAL  A)': Timestamp('2005-10-01 00:00:00'), 'Exportacion Total_TOTAL A': Timestamp('2005-10-01 00:00:00'), 'Importacion UE_TOTAL A + B': Timestamp('2005-10-01 00:00:00'), 'Importacion Total_TOTAL MONDIAL WORLD': Timestamp('2005-10-01 00:00:00'), 'Consumo UE_TOTAL  A)': Timestamp('2005-10-01 00:00:00'), 'Produccion Total_TOTAL MONDIAL WORLD': Timestamp('2005-10-01 00:00:00'), 'Importacion Total_TOTAL  B': Timestamp('2005-10-01 00:00:00')}

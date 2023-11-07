@@ -18,7 +18,6 @@ def compute_perc_harvest_post_march (df):
     extended_df = pd.DataFrame(index=extended_date_index)
     aggregated_df_fin = pd.concat([aggregated_df, extended_df], axis=0)
     aggregated_df_fin.fillna(method='ffill',inplace = True)
-    aggregated_df_fin
     aggregated_df_fin.rename(columns={'PRODUCTION': 'PRODUCTION_POST_MARCH'}, inplace=True)
     aggregated_df_fin.drop(columns = ['YEAR'],inplace=True)
     aggregated_df_fin = pd.merge(df1, aggregated_df_fin, right_index=True,left_index=True, how= 'left')
@@ -70,3 +69,22 @@ def group_into_montly_data(df, index:bool, date_col_name ='DATE'):
 
     return df_monthly_grouped
 
+def drop_columns_with_zeros(df):
+    # Check if a column has only 0 values
+    columns_to_drop = [col for col in df.columns if (df[col] == 0).all()]
+
+    # Drop the columns with only 0 values
+    df = df.drop(columns=columns_to_drop)
+
+    return df
+
+def convert_columns_to_float(df):
+    # Iterate through each column and convert its values to float
+    for col in df.columns:
+        if col != "DATE" and col != "YEAR":
+            # Replace commas with periods, and convert values to float
+            df[col] = df[col].str.replace('.', '')
+            df[col] = df[col].str.replace(',', '.').astype(float)
+        df[col] = pd.to_numeric(df[col], errors='coerce', downcast='float')
+
+    return df

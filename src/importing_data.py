@@ -375,12 +375,19 @@ def load_data():
         df_production_agg= df_production_agg.resample('MS').ffill()
 
 
+
+
         # we start considering the effect from the quantity of the harvest from March since the new harvest it's nearly over
 
         df_month = pd.merge(df_month, df_production_agg, left_index=True, right_index=True, how='left')
         df_month['PRODUCTION_HARVEST'] = df_month['PRODUCTION_HARVEST'].shift(2)
-        df_month['PRODUCTION_HARVEST_LAST_YEAR'] = df_month['PRODUCTION_HARVEST'].shift(14)
-        df_month['PRODUCTION_HARVEST_2_YEARS'] = df_month['PRODUCTION_HARVEST'].shift(26)
+        average_prod_post_march, prec = aux.compute_perc_harvest_post_march(df_month)
+        average_prod_post_march = 1 - (average_prod_post_march / 100)
+        previsiones = load_and_transform_previsiones()
+        # we are applying a penalty on the forecast of the production because the aggregated filed is not considering the production after march param:average_prod_post_march
+        df_month = transform_dataframe(df_month, previsiones, average_prod_post_march)
+        df_month['PRODUCTION_HARVEST_LAST_YEAR'] = df_month['PRODUCTION_HARVEST'].shift(12)
+        df_month['PRODUCTION_HARVEST_2_YEARS'] = df_month['PRODUCTION_HARVEST'].shift(24)
 
         #df_month.drop (columns =['HARVEST_YEAR'],inplace = True)
 
@@ -394,6 +401,57 @@ def load_data():
 
         return df_month
 
+def load_and_transform_previsiones(filename = "Datos/previsiones.xlsx"):
+    # Read the 'previsiones' DataFrame from the Excel file
+    previsiones = pd.read_excel(filename, decimal=',')
+
+    # Separate the 'Cosecha' column into two columns and perform necessary data transformations
+    previsiones[['Año Inicio', 'Año Fin']] = previsiones['Cosecha'].str.split('/', expand=True)
+    previsiones['Año Fin'] = '20' + previsiones['Año Fin']
+    previsiones.drop('Cosecha', axis=1, inplace=True)
+    previsiones = previsiones[['Año Inicio', 'Año Fin', 'Cosecha final Kton', 'Estimación Junta Andalucía', 'Estimación España (Junta Andalucia)', 'Estimación España COI ']]
+    previsiones['Año Inicio'] = pd.to_numeric(previsiones['Año Inicio'], errors='coerce')
+    previsiones['Año Fin'] = pd.to_numeric(previsiones['Año Fin'], errors='coerce')
+    previsiones['Cosecha final Kton'] = pd.to_numeric(previsiones['Cosecha final Kton'], errors='coerce')
+    previsiones['Estimación Junta Andalucía'] = pd.to_numeric(previsiones['Estimación Junta Andalucía'], errors='coerce')
+    previsiones['Estimación España (Junta Andalucia)'] = pd.to_numeric(previsiones['Estimación España (Junta Andalucia)'], errors='coerce')
+    previsiones['Estimación España COI'] = pd.to_numeric(previsiones['Estimación España COI '], errors='coerce')
+
+    return previsiones
+
+def transform_dataframe(dataframe, previsiones, proporcion):
+    # Convert 'DATE' column to datetime
+    if 'DATE' not in dataframe.columns:
+        dataframe['DATE'] = dataframe.index
+        print(dataframe.index)
+    dataframe['DATE'] = pd.to_datetime(dataframe['DATE'])
+
+    # Define a function to transform the 'PRODUCTION_HARVEST' column
+    def transform_production(row):
+        month = row['DATE'].month
+        year = row['DATE'].year
+
+        if 3 <= month <= 6:
+            return row['PRODUCTION_HARVEST']
+        elif 7 <= month <= 12:
+            condition = (previsiones['Año Inicio'] == year)
+        else:
+            condition = (previsiones['Año Fin'] == year)
+
+        matching_row = previsiones[condition]
+
+        if not matching_row.empty:
+            return matching_row['Estimación España (Junta Andalucia)'].values[0]*proporcion
+
+        return row['PRODUCTION_HARVEST']
+
+    # Create a new column 'PRODUCTION_HARVEST_REAL_EST'
+    dataframe['PRODUCTION_HARVEST_REAL_EST'] = dataframe.apply(transform_production, axis=1)
+
+    # Fill NaN values in 'PRODUCTION_HARVEST_REAL_EST' with the previous value
+    dataframe['PRODUCTION_HARVEST_REAL_EST'].fillna(method='ffill', inplace=True)
+
+    return dataframe
 
 
 def import_single_pdf(path_file ,filename) :
@@ -493,6 +551,8 @@ def import_single_pdf(path_file ,filename) :
     # Drop the columns with all null values
     df_transposed_fin_shifted.drop(eliminated_columns, axis=1, inplace=True)
       #  df_transposed_fin_shifted.to_excel("Output/Excel/df_tabula.xlsx")
+    #added to test
+    df_transposed_fin_shifted = aux.convert_columns_to_float(df_transposed_fin_shifted)
     return df_transposed_fin_shifted
 
 def initialize_df_month(start_date,end_date):
@@ -503,9 +563,10 @@ def initialize_df_month(start_date,end_date):
     df = pd.DataFrame(index=date_range)
     return df
 
-def import_pdf_data (path_file ,filename , start_date = '2001-01-01', end_date = '2023-12-01'):
-    df_pdf = import_single_pdf("Datos/PDF/Juan_Vilar/" ,"Importacion Total.pdf")
-    "Datos/PDF/Juan_Vilar/Importacion Total.pdf"
+
+
+def import_pdf_data (path_folder_pdf =  "Datos/PDF/Juan_Vilar/" , start_date = '2001-01-01', end_date = '2023-09-01',just_total = True):
+
     path_folder_pdf = "Datos/PDF/Juan_Vilar/"
     df_pdf_tot = initialize_df_month(start_date,end_date)
 
@@ -513,8 +574,23 @@ def import_pdf_data (path_file ,filename , start_date = '2001-01-01', end_date =
     for filename in ls_file_pdf:
         df_pdf = import_single_pdf("Datos/PDF/Juan_Vilar/" ,filename)
         df_pdf_tot= pd.merge (df_pdf_tot,df_pdf , right_index= True, left_index= True)
+    df_pdf_tot = aux.drop_columns_with_zeros(df_pdf_tot)
+    if just_total == True:
+        df_pdf_tot = filter_pdf_totals(df_pdf_tot)
     return df_pdf_tot
 
+
+def filter_pdf_totals (df ):
+    # for the analysis we consider just the aggregate, comment that function call if you want to include all the variables
+    ls_tot=[col for col in df.columns if 'TOTAL' in col]
+    df = df[ls_tot]
+    return df
+
+
+def include_pdf_data(df):
+    df_pdf = import_pdf_data()
+    df = df.merge(df_pdf, left_index=True, right_index=True, how='left')
+    return df
 
 def import_meteo_single_province(path_folder,province_name, start_date ='2001-01-01',end_date = '2023-09-30'):
     # read all the excel files of a province and put it in a df.
@@ -551,17 +627,18 @@ def import_meteo_single_province(path_folder,province_name, start_date ='2001-01
 
     df_out= aux.group_into_montly_data(df_selected, index =True)
     df_out.set_index('DATE',inplace=True)
+
     return df_out
 
 
-    def merge_meteo_data(list_df):
-        df_temp = list_df[0]
-        df_out = pd.DataFrame(index=df_temp.index)
+def merge_meteo_data(list_df):
+    df_temp = list_df[0]
+    df_out = pd.DataFrame(index=df_temp.index)
 
-        for df in list_df:
-            df_out = df_out.merge(df, left_index=True, right_index=True, how='left')
+    for df in list_df:
+        df_out = df_out.merge(df, left_index=True, right_index=True, how='left')
 
-        return df_out
+    return df_out
 
 
 
