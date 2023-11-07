@@ -11,6 +11,7 @@ import itertools
 from itertools import product
 from unidecode import unidecode
 import tabula
+from src import Aux_functions as aux
 
 
 def import_montly_andalucia():
@@ -513,3 +514,54 @@ def import_pdf_data (path_file ,filename , start_date = '2001-01-01', end_date =
         df_pdf = import_single_pdf("Datos/PDF/Juan_Vilar/" ,filename)
         df_pdf_tot= pd.merge (df_pdf_tot,df_pdf , right_index= True, left_index= True)
     return df_pdf_tot
+
+
+def import_meteo_single_province(path_folder,province_name, start_date ='2001-01-01',end_date = '2023-09-30'):
+    # read all the excel files of a province and put it in a df.
+    # linares and Marmolejo ( Jaen) are out because they are fragmented in 2 files from the web
+    # supposibly it should be done a concat of the 2 original file and merging them separately at the end of 1st for
+    #path = "C:/Users/acanino/PycharmProjects/Deoleo/Datos/Datos_Cordoba"
+    # creating all the timestamps of the final df
+    all_dates = pd.DataFrame({'Timestamp': pd.date_range(start=start_date, end=end_date)})
+    all_dates['Timestamp'] = pd.to_datetime(all_dates['Timestamp'])
+    all_dates.set_index('Timestamp', inplace=True)
+    for file in os.listdir(path_folder):
+        print(file)
+        sheet = pd.read_csv(path_folder + "/" + file, sep=';', decimal=',', encoding='utf-8')
+        sheet['FECHA'] = pd.to_datetime(sheet['FECHA'], format='%d/%m/%y')
+        sheet.drop(columns=['DIA'],inplace=True)
+        sheet.rename(columns={'FECHA': 'DATE'}, inplace=True)
+        sheet.set_index('DATE',inplace = True)
+        all_dates = all_dates.merge(sheet, left_index=True, right_index=True, how='left')
+
+    # listing the variables suffix
+    suffix_list = ['TMax', 'TMin', 'TMed', 'Precip']
+    for suffix in suffix_list:
+        average_lambda = lambda row: pd.to_numeric(row.filter(like=suffix), errors='coerce').mean()
+        all_dates[suffix+'_Average_' + province_name] = all_dates.apply(average_lambda, axis=1)
+
+    for col in all_dates.columns:
+        if "Average" in col:
+            null_average_rows = all_dates[all_dates[col].isnull()]
+            print(null_average_rows)
+            all_dates[col].fillna(method="ffill").fillna(method="bfill")
+
+    avg = 'Average'
+    df_selected = all_dates[all_dates.columns[all_dates.columns.str.contains(avg)]]
+
+    df_out= aux.group_into_montly_data(df_selected, index =True)
+    df_out.set_index('DATE',inplace=True)
+    return df_out
+
+
+    def merge_meteo_data(list_df):
+        df_temp = list_df[0]
+        df_out = pd.DataFrame(index=df_temp.index)
+
+        for df in list_df:
+            df_out = df_out.merge(df, left_index=True, right_index=True, how='left')
+
+        return df_out
+
+
+

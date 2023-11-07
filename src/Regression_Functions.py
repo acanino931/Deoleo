@@ -256,6 +256,7 @@ def rolling_regression(df, target_variable, window_size):
     #todo consider significativity and stepwise inside the rolling
     results = []
     n = len(df)
+    df['DATE'] = df.index
 
     for end_date in range(window_size, n + 1):
         start_date = end_date - window_size
@@ -295,7 +296,7 @@ def rolling_regression(df, target_variable, window_size):
     #rolling_results = rolling_regression(datos, target_variable, window_size)
 
     #rolling_results.to_excel('results_basic_model.xlsx')
-
+    df.drop(columns=['DATE'],inplace = True)
     return pd.DataFrame(results)
 
 

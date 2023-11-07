@@ -27,3 +27,27 @@ def compute_perc_harvest_post_march (df):
     average = aggregated_df_fin.PERCENTAGE_HARVEST_POST_MARCH.mean()
 
     return(average,aggregated_df_fin['PERCENTAGE_HARVEST_POST_MARCH'] )
+
+
+def group_into_montly_data(df, index:bool, date_col_name ='DATE'):
+    if index == False:
+        df['DATE'] = pd.to_datetime(df[date_col_name], format='%d/%m/%y')
+    else:
+        df['DATE'] = df.index
+
+    # Extract the month and year into separate columns
+    df['Month_Year'] = df['DATE'].dt.strftime('%m-%Y')
+
+    # Drop the original 'Date' column
+    df.drop('DATE', axis=1, inplace=True)
+
+    # Group the DataFrame by the 'Month_Year' column and calculate the mean for each group
+    df_monthly_grouped = df.groupby('Month_Year').mean().reset_index()
+
+    # Sort the DataFrame chronologically by the 'Month_Year' column
+    df_monthly_grouped['Month_Year'] = pd.to_datetime(df_monthly_grouped['Month_Year'], format='%m-%Y')
+    df_monthly_grouped = df_monthly_grouped.sort_values('Month_Year')
+
+    df_monthly_grouped = df_monthly_grouped.rename(columns={'Month_Year': 'DATE'})
+
+    return df_monthly_grouped

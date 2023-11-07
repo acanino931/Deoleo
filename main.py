@@ -21,7 +21,6 @@ from unidecode import unidecode
 importlib.reload(gf)  # Reload the module # code to reload  lib
 
 
-
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
@@ -117,10 +116,17 @@ def print_doc_scatter_ouliers(df1,target_var ='VIRGEN_EXTRA_EUR_kg'):
 
     doc.save('Output/Document/Scatterplots_Modelo_basico.docx')
 
+def include_meteo_vaiables(df =df_month):
+    df_cordoba = imd.import_meteo_single_province("Datos/Datos_Cordoba", "Cordoba")
+    df_jaen = imd.import_meteo_single_province("Datos/Datos_Jaen", "Jaen")
+    df_meteo = df_jaen.merge(df_cordoba, left_index=True, right_index=True, how='left')
+    df_month = df_month.merge(df_meteo, left_index=True, right_index=True, how='left')
+    return df_month
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    mock = False
+    mock = True
     if mock == False:
         try:
             # Code that might raise an exception
@@ -139,38 +145,17 @@ if __name__ == '__main__':
         df_month  = df_month.set_index('DATE')
 
     df_month
-    df_test = basic_model_df.copy()
+    #df_test = basic_model_df.copy()
+
+
+    basic_model_df_man
+    result_rolling = rf.rolling_regression(basic_model_df_man, 'VIRGEN_EXTRA_EUR_kg', 40)
+    result_rolling.to_excel("Prova.xlsx")
+
+
     # analisis harvest production
- #   df_test = rf.eliminate_rows_after_date(df_test, '2021-12-01')
- #   df_test = rf.eliminate_rows_from_date(df_test, '2005-10-01')
-
-    filtered_df = df_month[(df_month['Month'] >= 3) & (df_month['Month'] <= 5)]
-    filtered_df
-    aggregated_df = filtered_df.groupby('YEAR')['PRODUCTION'].sum().reset_index()
-    aggregated_df
-    aggregated_df.index = pd.to_datetime(aggregated_df.YEAR, format='%Y')
-    aggregated_df.index.freq = pd.tseries.offsets.YearBegin()
-    aggregated_df = aggregated_df.resample('MS').ffill()
-    max_index = aggregated_df.index.max()
-    next_month = max_index + pd.DateOffset(months=1)
-    first_day_of_next_month = pd.Timestamp(year=next_month.year, month=next_month.month, day=1)
-    date_string = first_day_of_next_month.strftime('%Y-%m-%d')
-    extended_date_index = pd.date_range(start= date_string, end='2023-12-01', freq='MS')
-    extended_df = pd.DataFrame(index=extended_date_index)
-    aggregated_df_fin = pd.concat([aggregated_df, extended_df], axis=0)
-    aggregated_df_fin.fillna(method='ffill',inplace = True)
-    aggregated_df_fin
-    aggregated_df_fin.rename(columns={'PRODUCTION': 'PRODUCTION_POST_MARCH'}, inplace=True)
-    aggregated_df_fin.drop(columns = ['YEAR'],inplace=True)
-    aggregated_df_fin = pd.merge(df_test, aggregated_df_fin, right_index=True,left_index=True, how= 'left')
-    aggregated_df_fin['PRODUCTION_POST_MARCH'] = aggregated_df_fin['PRODUCTION_POST_MARCH'].shift(2)
-    aggregated_df_fin['PERCENTAGE_HARVEST_POST_MARCH'] = aggregated_df_fin['PRODUCTION_POST_MARCH'] / aggregated_df_fin['PRODUCTION_HARVEST'] *100
-    aggregated_df_fin.PERCENTAGE_HARVEST_POST_MARCH.unique()
-    aggregated_df_fin.PERCENTAGE_HARVEST_POST_MARCH.mean()
-    aggregated_df_fin['PRODUCTION_BEFORE_MARCH'] = np.where((df_month['Month'] > 2) & (df_month['Month'] < 9), 0,df_month['PRODUCTION'])
-    aggregated_df_fin.to_excel("Prova.xlsx")
-
-
+    #   df_test = rf.eliminate_rows_after_date(df_test, '2021-12-01')
+    #   df_test = rf.eliminate_rows_from_date(df_test, '2005-10-01')
 
 
 
@@ -206,17 +191,16 @@ if __name__ == '__main__':
 
     # pretreat variables :
     df_month = df_month.fillna(method='ffill')
-    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'EXTERNAL_DEMAND']].copy()
+    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'TOTAL_CONS']].copy()
     basic_model_df = df_month.copy()
-    basic_model_df['TOTAL_CONS'] = basic_model_df['INNER_CONS'] + basic_model_df['EXPORTS']
     basic_model_df['EXPORTS_LAG15'] = basic_model_df['EXPORTS'].shift(15)
     basic_model_df['INTERNAL_DEMAND_LAG_13'] = basic_model_df['INTERNAL_DEMAND'].shift(13)
-    basic_model_df['TOTAL_CONS_LAG_12'] = basic_model_df['EXTERNAL_DEMAND'].shift(12)
+    basic_model_df['TOTAL_CONS_LAG_12'] = basic_model_df['TOTAL_CONS'].shift(12)
     basic_model_df['PRODUCTION_LAG_21'] = basic_model_df['PRODUCTION'].shift(21)
     basic_model_df['TOTAL_CONS_LAG_13'] = basic_model_df['TOTAL_CONS'].shift(13)
     basic_model_df['EXIS_INIC_18'] = basic_model_df['EXIS_INIC'].shift(18)
     basic_model_df['PRODUCTION_HARVEST_LAG_8'] = basic_model_df['PRODUCTION_HARVEST'].shift(8)
-    basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
+    #basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
 
     basic_model_df_man = basic_model_df[
         ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
