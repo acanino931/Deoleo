@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="mean of rolling added">
-      <change beforePath="$PROJECT_DIR$/.idea/Deoleo.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Deoleo.iml" afterDir="false" />
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="nexus (step and backtensing) and production forecast added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_5_original_2005_data.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Document/regression_summary_basic_model_stepwise_5_original_2005_data.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prova.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/prova.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/aux_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -223,7 +218,14 @@
       <option name="project" value="LOCAL" />
       <updated>1699354155957</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="nexus (step and backtensing) and production forecast added">
+      <created>1699388043146</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1699388043146</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -262,6 +264,7 @@
     <MESSAGE value="Calculate percentage after after march" />
     <MESSAGE value="meterological 2 included , rolling tested" />
     <MESSAGE value="mean of rolling added" />
-    <option name="LAST_COMMIT_MESSAGE" value="mean of rolling added" />
+    <MESSAGE value="nexus (step and backtensing) and production forecast added" />
+    <option name="LAST_COMMIT_MESSAGE" value="nexus (step and backtensing) and production forecast added" />
   </component>
 </project>

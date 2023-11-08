@@ -20,6 +20,19 @@ from unidecode import unidecode
 #from src import importing_data as imd  # code to reload  lib
 importlib.reload(rf)  # Reload the module # code to reload  lib
 
+# test regression :
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+from sklearn.linear_model import LinearRegression, HuberRegressor
+from sklearn.metrics import r2_score, mean_absolute_error,mean_squared_error, mean_absolute_percentage_error
+from scipy.stats import kurtosis, skew
+import itertools
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.stats.diagnostic import acorr_ljungbox
+
+
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -126,7 +139,7 @@ def include_meteo_variables(df):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    mock = False
+    mock = True
     if mock == False:
         try:
             # Code that might raise an exception
@@ -143,6 +156,7 @@ if __name__ == '__main__':
 
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
+        df_month = rf.eliminate_rows_from_date(df_month, '2005-10-01')
 
 
     df_month.columns
@@ -174,7 +188,7 @@ if __name__ == '__main__':
         result_rolling.to_excel(f"Output/Rolling_Regression/Rolling{window}.xlsx")
 
 
-    result_rolling.to_excel("Prova.xlsx")
+    result_rolling.to_excel("Prova_rolling.xlsx")
 
 
     # analisis harvest production
@@ -213,22 +227,28 @@ if __name__ == '__main__':
     # Modelo Basico
 
     # pretreat variables :
-    PRODUCTION_HARVEST_REAL_EST
+    #'PRODUCTION_HARVEST_REAL_EST'
+    #PRODUCTION_HARVEST_REAL_EST
     df_month = df_month.fillna(method='ffill')
-    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION','PRODUCTION_HARVEST_REAL_EST' ,'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'TOTAL_CONS']].copy()
+    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION' ,'PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS', 'INTERNAL_DEMAND', 'TOTAL_CONS']].copy()
     basic_model_df = df_month.copy()
     basic_model_df['EXPORTS_LAG15'] = basic_model_df['EXPORTS'].shift(15)
     basic_model_df['INTERNAL_DEMAND_LAG_13'] = basic_model_df['INTERNAL_DEMAND'].shift(13)
     basic_model_df['TOTAL_CONS_LAG_12'] = basic_model_df['TOTAL_CONS'].shift(12)
+    basic_model_df['TOTAL_CONS_LAG_13'] = basic_model_df['TOTAL_CONS'].shift(12)
     basic_model_df['PRODUCTION_LAG_21'] = basic_model_df['PRODUCTION'].shift(21)
     basic_model_df['TOTAL_CONS_LAG_13'] = basic_model_df['TOTAL_CONS'].shift(13)
     basic_model_df['EXIS_INIC_18'] = basic_model_df['EXIS_INIC'].shift(18)
-    basic_model_df['PRODUCTION_HARVEST_LAG_8'] = basic_model_df['PRODUCTION_HARVEST'].shift(8)
+    basic_model_df['PRODUCTION_LAG_21'] = basic_model_df['PRODUCTION'].shift(21)
     #basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
 
     basic_model_df_man = basic_model_df[
         ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
 'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC', 'PRODUCTION_HARVEST_LAG_8', 'PRODUCTION', 'INTERNAL_DEMAND']]
+
+    basic_model_df_man = basic_model_df[
+        ['VIRGEN_EXTRA_EUR_kg', 'IMPORTS','EXPORTS', 'INNER_CONS', 'TOTAL_CONS_LAG_12', 'EXPORTS_LAG15', 'TOTAL_CONS',
+         'INTERNAL_DEMAND_LAG_13', 'EXIS_INIC','PRODUCTION_HARVEST', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS','PRODUCTION', 'INTERNAL_DEMAND','PRODUCTION_LAG_21','TOTAL_CONS_LAG_13']]
     #modelo basico without lag
     #basic_model_df_man = basic_model_df[['VIRGEN_EXTRA_EUR_kg', 'IMPORTS', 'INNER_CONS', 'TOTAL_CONS','EXIS_INIC', 'PRODUCTION_HARVEST', 'INTERNAL_DEMAND']]
     basic_model_df_man = rf.eliminate_rows_from_date(basic_model_df_man, '2005-10-01')
@@ -302,7 +322,7 @@ if __name__ == '__main__':
     # df_pred.columns
     basic_model_df_bck.columns
 
-    df_result=  rf.back_testing_regression_OLD(basic_model_df_bck, basic_model_df_bck.drop(columns=['VIRGEN_EXTRA_EUR_kg']), 'VIRGEN_EXTRA_EUR_kg')
+    df_result=  back_testing_regression_OLD(basic_model_df, basic_model_df.drop(columns=['VIRGEN_EXTRA_EUR_kg']), 'VIRGEN_EXTRA_EUR_kg',  signif= True, initial_date = '2022-05-01',  final_date= '2023-05-01')
     df_result.to_excel("Prova.xlsx")
 
     df_pred, MSFE, MAPE = rf.back_testing_regression(basic_model_df_bck, 50, 24,
@@ -478,6 +498,138 @@ if __name__ == '__main__':
 
     print_doc_descriptive_vars(df_month2,'VIRGEN_EXTRA_EUR_kg')
     """
+
+
+    def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var, initial_date: str = '2022-05-01',
+                                    final_date: str = '2023-05-01', signif: bool = True,
+                                    regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+        """
+        Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
+        Input:
+            df: Dataframe. It takes a df with the objective function, and all spot and forward columns. The hedging is done for all dates in the index.
+            x_cols: List of Spot columns. These are the columns that will be selected in the regression
+            y_var: String of the name of the objettve fnction (y)
+            volumen: List. Volume of SSCC for each month
+            initial_date: String. It is the first month in which the hedging is done. It must have the format: 'YYYY-MM-01'
+            final_date: String. It is the last month in which the hedging is done. It must have the format: 'YYYY-MM-01'
+            signif: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols. Only used in the regression.
+            prima: Float. Selected adder (Prima). The prima is added in the final calulations as an addition to the base cash flow
+            regr_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
+            num_variables: Integer. Maximum number of variables to select while doing Step Wise regression, it is applied when signif is True. Only used in the regression.
+            window: Integer. Training window in which the regression is calibrated
+            step_ahead: Integer. Number of months ahead selected to perform hedging in. If step_ahead = 1 it means that the hedging is caculated for 1 month ahead
+        Outputs: Dataframe.
+            Dataframe with the final hedging calculations for each month, it has the following columns:
+                vars: List of the variables used
+                coefs: List of the coefficients used in the regression
+                real_date: Date (Month) in which the hedging is done (m)
+                forward_date: Date (Month) for which the hedging is done
+                sscc_estimado: Estimated value of the SSCC of the months in the test dataframe
+                sscc_spot_m1: Real value of the SSCC of the months in the test dataframe
+                total_liquid: Sum of all liquidations done by the variables
+                r2: R2 of the regression. It is the R2 in-sample.
+                cash_flow_EUR: It is the Cash Flow resulting of the entire hedging process
+                cash_flow_prima_EUR: It is the Cash Flow resulting of the entire hedging process plus an adder
+                cash_flow_inicial: It is the Cash Flow resulting of the initial part of the process. It does not take into account the swap liquidations
+                cash_flow_EUR_MWh: cash_flow_EUR divided by the volume (volumen)
+                cash_flow_prima_EUR_MWh: cash_flow_prima_EUR_MWh divided by the volume (volumen)
+                cash_flow_inicial_EUR_MWh: cash_flow_inicial divided by the volume (volumen)
+                Cuadrados_Sin_C: It is used for the %Mejora metric, it is cash_flow_inicial_EUR_MWh ^2
+                Cuadrados_Con_C: It is used for the %Mejora metric, it is cash_flow_EUR ^2
+
+        """
+
+        df_total = pd.DataFrame()
+
+        # initial_date fecha inicial de prevision
+        # final_date fecha final de prevision
+        d = df.loc[initial_date:].index[0] - relativedelta(months=window)  # Date defiition
+        df = df.loc[:final_date]
+
+        unique_dates = df.index.unique()  # List of dates of the DataFrame
+        # unique_dates1 = unique_dates[:-(window) - (step_ahead) + 1]  # row for the rolling windows
+        unique_dates1 = unique_dates[:- (step_ahead) + 1]  # List of dates to iterate over
+        print(unique_dates1)
+        for idx, i in enumerate(unique_dates1):
+
+
+            ###### Date range interval for the train dataset, delimited by the window size
+
+            date = i.date()  # Starting date of the training window
+            date_max = unique_dates[
+                idx + window - 1].date()  # End date of the training window. Month in which I perform the hedging
+
+            df_out2 = df.loc[date: date_max]  # Dataframe with training window
+
+            for step in range(1,
+                              step_ahead + 1):  # Iteration on each month of the test window delimited by the step_ahead parameter
+                # vol_index = step -1
+                df_res = pd.DataFrame()
+
+                date_max_step = unique_dates[idx + window + step - 1].date()  # Date of each step
+
+                df_test = df.loc[date_max_step: date_max_step]
+
+                ###### Regression with the forward values
+
+                df_reg = rf.regression_OLD(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+                                        significativas=signif,
+                                        n_vars=num_variables)
+
+                ###### Calculate liquidations: LIQUIDATIONS
+
+                # liquid = []
+                vars = df_reg['vars'][0]
+                coefs = df_reg['coef'][0]
+                mape = df_reg['MAPE'][0]
+                # new
+
+                ###### Swap liquidations: SWAPS
+
+                # for numero,c in enumerate(coefs):
+
+                #     factor = c * volumen[vol_index]
+                #     if vars[numero] == 'TRAPI2Mc1' or vars[numero] == 'BRT-': # Cotizan en dolares
+
+                #         swap = float(factor * ( df[vars[numero]].loc[date_max_step : date_max_t][0] / df['EUR='].loc[date_max_step : date_max_t][0] -  df_forwards2[vars[numero]].loc[date_max_step : date_max_t][0] / df_forwards2['EUR='].loc[date_max_step : date_max_t][0]   ) ) # swap = factor * ( [spot M +1] - [forward M +1 in M]  )
+                #     elif vars[numero] == 'HT':
+                #         swap = 0
+                #     else:
+
+                #         swap = float(factor *( df[vars[numero]].loc[date_max_step : date_max_t][0] -  df_forwards2[vars[numero]].loc[date_max_step : date_max_t][0]   ) ) # swap = factor * ( [spot M +1] - [forward M +1 in M]  )
+
+                #     liquid.append(swap)
+
+                res_pred = np.concatenate([np.ravel(rr) for rr in df_reg['pred']])
+
+                ###### CALCULATIONS
+
+                df_res['vars'] = [vars]
+                df_res['coefs'] = [coefs]
+                df_res['mape'] = [mape]
+                df_res['real_date'] = date_max
+                df_res['forward_date'] = date_max_step
+                df_res['sscc_estimado'] = res_pred[0]  # valor predicho
+                df_res['sscc_spot_m1'] = float(df_test[y_var][0])  # valor real
+                # df_res['total_liquid'] = sum(liquid)
+                df_res['r2'] = df_reg['r2'][0]
+
+                # df_res['cash_flow_EUR'] = volumen[vol_index] * (df_res['sscc_estimado'] - df_res['sscc_spot_m1'] ) + df_res['total_liquid']
+                # df_res['cash_flow_prima_EUR'] = volumen[vol_index] * (prima + df_res['sscc_estimado'] - df_res['sscc_spot_m1'] ) + df_res['total_liquid']
+                # df_res['cash_flow_inicial'] = volumen[vol_index] * (df_res['sscc_estimado'] - df_res['sscc_spot_m1'] )
+
+                # df_res['cash_flow_EUR_MWh'] = df_res['cash_flow_EUR'] / volumen[vol_index]
+                # df_res['cash_flow_prima_EUR_MWh'] = df_res['cash_flow_prima_EUR'] / volumen[vol_index]
+                # df_res['cash_flow_inicial_EUR_MWh'] = (df_res['sscc_estimado'] - df_res['sscc_spot_m1'] )
+
+                # df_res['Cuadrados_Sin_C'] = df_res['cash_flow_inicial_EUR_MWh']**2
+                # df_res['Cuadrados_Con_C'] = df_res['cash_flow_EUR_MWh']**2
+
+                df_total = pd.concat([df_total, df_res], axis=0)
+
+        return df_total.reset_index(drop=True)
+
+
 
 
 

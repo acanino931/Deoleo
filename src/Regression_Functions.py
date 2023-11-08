@@ -200,10 +200,121 @@ def back_testing_regression(df, test_sample, horizontes, target_variable='VIRGEN
     return df_pred, MSFE, MAPE
 
 
-def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2022-06-01',
-                             final_date: str = '2023-05-01', signif: bool = True,
+
+def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, initial_date: str = '2021-11-01',
+                                final_date: str = '2023-09-01', signif: bool = True,
+                                regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+    """
+    THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
+    Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
+    Input:
+        df: Dataframe. It takes a df with the objective function, and all spot and forward columns. The hedging is done for all dates in the index.
+        x_cols: List of Spot columns. These are the columns that will be selected in the regression
+        y_var: String of the name of the objettve fnction (y)
+        volumen: List. Volume of SSCC for each month
+        initial_date: String. It is the first month in which the hedging is done. It must have the format: 'YYYY-MM-01'
+        final_date: String. It is the last month in which the hedging is done. It must have the format: 'YYYY-MM-01'
+        signif: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols. Only used in the regression.
+        prima: Float. Selected adder (Prima). The prima is added in the final calulations as an addition to the base cash flow
+        regr_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
+        num_variables: Integer. Maximum number of variables to select while doing Step Wise regression, it is applied when signif is True. Only used in the regression.
+        window: Integer. Training window in which the regression is calibrated
+        step_ahead: Integer. Number of months ahead selected to perform hedging in. If step_ahead = 1 it means that the hedging is caculated for 1 month ahead
+    Outputs: Dataframe.
+        Dataframe with the final hedging calculations for each month, it has the following columns:
+            vars: List of the variables used
+            coefs: List of the coefficients used in the regression
+            real_date: Date (Month) in which the hedging is done (m)
+            forward_date: Date (Month) for which the hedging is done
+            sscc_estimado: Estimated value of the SSCC of the months in the test dataframe
+            sscc_spot_m1: Real value of the SSCC of the months in the test dataframe
+            total_liquid: Sum of all liquidations done by the variables
+            r2: R2 of the regression. It is the R2 in-sample.
+            cash_flow_EUR: It is the Cash Flow resulting of the entire hedging process
+            cash_flow_prima_EUR: It is the Cash Flow resulting of the entire hedging process plus an adder
+            cash_flow_inicial: It is the Cash Flow resulting of the initial part of the process. It does not take into account the swap liquidations
+            cash_flow_EUR_MWh: cash_flow_EUR divided by the volume (volumen)
+            cash_flow_prima_EUR_MWh: cash_flow_prima_EUR_MWh divided by the volume (volumen)
+            cash_flow_inicial_EUR_MWh: cash_flow_inicial divided by the volume (volumen)
+            Cuadrados_Sin_C: It is used for the %Mejora metric, it is cash_flow_inicial_EUR_MWh ^2
+            Cuadrados_Con_C: It is used for the %Mejora metric, it is cash_flow_EUR ^2
+
+    """
+
+    df_total = pd.DataFrame()
+
+    # initial_date fecha inicial de prevision
+    # final_date fecha final de prevision
+    d = df.loc[initial_date:].index[0] - relativedelta(months=1)  # Date defiition
+    df = df.loc[:final_date]
+
+    unique_dates = df.index.unique()  # List of dates of the DataFrame
+    date_object = pd.to_datetime(initial_date, format='%Y-%m-%d')
+    d = unique_dates.get_loc(date_object)
+  #  d = unique_dates.index(date_object)
+
+    # unique_dates1 = unique_dates[:-(window) - (step_ahead) + 1]  # row for the rolling windows
+    unique_dates1 = unique_dates[d-1:- (step_ahead) ]  # List of dates to iterate over
+    for idx, i in enumerate(unique_dates1):
+
+
+        ###### Date range interval for the train dataset, delimited by the window size
+
+        date_max = i.date()  # final date of the training window , now it's datemax
+
+        df_out2 = df.loc[: date_max]  # Dataframe with training window
+        #print(df_out2.index)
+
+        for step in range(1,
+                          step_ahead + 1):  # Iteration on each month of the test window delimited by the step_ahead parameter
+            # vol_index = step -1
+            df_res = pd.DataFrame()
+
+            ind_test = df.loc[date_max:date_max].index[0] + relativedelta(months=step)  # Date defiition
+            df_test = df.loc[ind_test: ind_test]
+            #print(df_test.index)
+
+            ###### Regression with the forward values
+
+            df_reg = regression_OLD(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+                                    significativas=signif,
+                                    n_vars=num_variables)
+
+            ###### Calculate liquidations: LIQUIDATIONS
+
+            # liquid = []
+            vars = df_reg['vars'][0]
+            coefs = df_reg['coef'][0]
+            mape = df_reg['MAPE'][0]
+            # new
+
+            res_pred = np.concatenate([np.ravel(rr) for rr in df_reg['pred']])
+
+            ###### CALCULATIONS
+
+            df_res['vars'] = [vars]
+            df_res['coefs'] = [coefs]
+            df_res['mes_vista'] = [step]
+            df_res['mape'] = [mape]
+            df_res['real_date'] = date_max
+            df_res['forward_date'] = ind_test
+            df_res['Prevision'] = res_pred[0]  # valor predicho
+            df_res['Real'] = float(df_test[y_var][0])  # valor real
+            # df_res['total_liquid'] = sum(liquid)
+            df_res['r2'] = df_reg['r2'][0]
+            df_res['Mape_final'] = df_res.groupby('HARVEST_YEAR')[
+                'PRODUCTION_BEFORE_MARCH'].sum()
+
+            df_total = pd.concat([df_total, df_res], axis=0)
+    df_total['Mape_final'] = df_total.groupby('mes_vista')['mape'].transform('mean')
+    return df_total.reset_index(drop=True)
+
+
+def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2021-11-01',
+                             final_date: str = '2023-09-01', signif: bool = True,
                              regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
+    THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
     Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
     Input:
         df: Dataframe. It takes a df with the objective function, and all spot and forward columns. The hedging is done for all dates in the index.
@@ -247,7 +358,7 @@ def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date
     df = df.loc[d:final_date]
 
     unique_dates = df.index.unique()  # List of dates of the DataFrame
-    unique_dates1 = unique_dates[:-(window) - (step_ahead) + 1]  # List of dates to iterate over
+    unique_dates1 = unique_dates[:-(window) - (step_ahead) + 1]  # row for the rolling windows
 
     for idx, i in enumerate(unique_dates1):
 
@@ -256,17 +367,10 @@ def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date
         date = i.date()  # Starting date of the training window
         date_max = unique_dates[
             idx + window - 1].date()  # End date of the training window. Month in which I perform the hedging
-       #  date_max_t = unique_dates[
-       #     idx + window + step_ahead - 1].date()  # Maximum date over which I want to make coverages
+
 
         df_out2 = df.loc[date: date_max]  # Dataframe with training window
-        # x1 = x_cols.copy()
-        # try:
-        #     x1.remove('HT')
-        # except:
-        #     pass
-        # df_forwards = aux.create_forward_df(df,cols = x1, date_ini = str(date_max),date_end = date_max_t) # Dataframe de test: Forwards
-        # df_forwards['HT'] = [df['HT_f'].loc[date_max:date_max][0]] * len(df_forwards)
+
 
         for step in range(1,
                           step_ahead + 1):  # Iteration on each month of the test window delimited by the step_ahead parameter
@@ -275,12 +379,6 @@ def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date
 
             date_max_step = unique_dates[idx + window + step - 1].date()  # Date of each step
 
-            ###### Dataframe definition for each step
-
-            #df_obj = df[y_var].loc[date_max_step: date_max_step]
-            #df_forwards2 = df_forwards.loc[date_max_step: date_max_step]
-
-            #df_test = df_forwards2.join(df_obj, how='left')
             df_test = df.loc[date_max_step: date_max_step]
 
             ###### Regression with the forward values
@@ -297,21 +395,7 @@ def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date
             # new
 
 
-            ###### Swap liquidations: SWAPS
 
-            # for numero,c in enumerate(coefs):
-
-            #     factor = c * volumen[vol_index]
-            #     if vars[numero] == 'TRAPI2Mc1' or vars[numero] == 'BRT-': # Cotizan en dolares
-
-            #         swap = float(factor * ( df[vars[numero]].loc[date_max_step : date_max_t][0] / df['EUR='].loc[date_max_step : date_max_t][0] -  df_forwards2[vars[numero]].loc[date_max_step : date_max_t][0] / df_forwards2['EUR='].loc[date_max_step : date_max_t][0]   ) ) # swap = factor * ( [spot M +1] - [forward M +1 in M]  )
-            #     elif vars[numero] == 'HT':
-            #         swap = 0
-            #     else:
-
-            #         swap = float(factor *( df[vars[numero]].loc[date_max_step : date_max_t][0] -  df_forwards2[vars[numero]].loc[date_max_step : date_max_t][0]   ) ) # swap = factor * ( [spot M +1] - [forward M +1 in M]  )
-
-            #     liquid.append(swap)
 
             res_pred = np.concatenate([np.ravel(rr) for rr in df_reg['pred']])
 
@@ -319,27 +403,18 @@ def back_testing_regression_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date
 
             df_res['vars'] = [vars]
             df_res['coefs'] = [coefs]
+            df_res['mes_vista'] = [step]
             df_res['mape'] = [mape]
             df_res['real_date'] = date_max
             df_res['forward_date'] = date_max_step
-            df_res['sscc_estimado'] = res_pred[0]  # valor predicho
-            df_res['sscc_spot_m1'] = float(df_test[y_var][0])  # valor real
+            df_res['Prevision'] = res_pred[0]  # valor predicho
+            df_res['Real'] = float(df_test[y_var][0])  # valor real
             # df_res['total_liquid'] = sum(liquid)
             df_res['r2'] = df_reg['r2'][0]
 
-            # df_res['cash_flow_EUR'] = volumen[vol_index] * (df_res['sscc_estimado'] - df_res['sscc_spot_m1'] ) + df_res['total_liquid']
-            # df_res['cash_flow_prima_EUR'] = volumen[vol_index] * (prima + df_res['sscc_estimado'] - df_res['sscc_spot_m1'] ) + df_res['total_liquid']
-            # df_res['cash_flow_inicial'] = volumen[vol_index] * (df_res['sscc_estimado'] - df_res['sscc_spot_m1'] )
-
-            # df_res['cash_flow_EUR_MWh'] = df_res['cash_flow_EUR'] / volumen[vol_index]
-            # df_res['cash_flow_prima_EUR_MWh'] = df_res['cash_flow_prima_EUR'] / volumen[vol_index]
-            # df_res['cash_flow_inicial_EUR_MWh'] = (df_res['sscc_estimado'] - df_res['sscc_spot_m1'] )
-
-            # df_res['Cuadrados_Sin_C'] = df_res['cash_flow_inicial_EUR_MWh']**2
-            # df_res['Cuadrados_Con_C'] = df_res['cash_flow_EUR_MWh']**2
 
             df_total = pd.concat([df_total, df_res], axis=0)
-
+    df_total['Mape_final'] = df_total.groupby('mes_vista')['mape'].transform('mean')
     return df_total.reset_index(drop=True)
 
 
@@ -361,7 +436,7 @@ def stepwise_regression_OLD(X, y, n_vars: int = 4):
     included = list(X.columns)
     while True:
         model = sm.OLS(y, sm.add_constant(X[included])).fit()
-        print(model.summary())
+        #print(model.summary())
 
         max_pval = model.pvalues[1:].max()  # Excluye el p-valor del intercepto
 
