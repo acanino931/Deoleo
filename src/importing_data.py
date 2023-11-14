@@ -359,6 +359,7 @@ def load_data():
         df_month['PRODUCTION_BEFORE_MARCH'] =  np.where((df_month['Month'] > 2) & (df_month['Month'] < 9),0,df_month['PRODUCTION'])
 
         # aggregating the production data per year for the harvest reference year
+        #decomment when test over
         df_production = df_month[['PRODUCTION_BEFORE_MARCH', 'HARVEST_YEAR']].copy()
 
         df_month.drop(columns=['PRODUCTION_BEFORE_MARCH'],inplace = True)
@@ -367,7 +368,19 @@ def load_data():
         df_production_agg = pd.DataFrame()
 
         df_production_agg['PRODUCTION_HARVEST'] = df_production.groupby('HARVEST_YEAR')['PRODUCTION_BEFORE_MARCH'].sum()
+       # Start Decoment _ if you want to consider all the production comment preious lines as well
+        """
 
+        df_production = df_month[['PRODUCTION', 'HARVEST_YEAR']].copy()
+
+
+
+        df_production['PRODUCTION'] = df_production[['PRODUCTION']].fillna(0)
+        df_production_agg = pd.DataFrame()
+
+        df_production_agg['PRODUCTION_HARVEST'] = df_production.groupby('HARVEST_YEAR')['PRODUCTION'].sum()
+        """
+       # End Decoment if you want to consider all the production
 
         # Including the aggregated production in the main df
         df_production_agg.index = pd.to_datetime(df_production_agg.index, format='%Y')

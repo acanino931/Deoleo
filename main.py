@@ -13,6 +13,8 @@ from src import Aux_functions as aux
 import numpy as np
 import statsmodels.api as sm
 import os
+from src import Yearly_weight_transformation as year_trans
+
 
 import tabula
 import importlib # code to reload  lib
@@ -65,7 +67,8 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
     for col in df:
         if col != target_var and col != 'YEAR' and col != 'HARVEST_YEAR':
             doc.add_paragraph('Graficas de Variable ' + col)
-            image_buffer = gf.scatterplot_for_years_yearly_var(df, col, target_var)
+            # to print the yearly var change the sequent function into : scatterplot_for_years_yearly_var() scatterplot_for_years
+            image_buffer = gf.scatterplot_for_years(df, col, target_var)
             doc.add_picture(image_buffer, width=Inches(3), height=Inches(2))
             doc.add_paragraph('')
             buffer_ret = gf.custom_ccf(df, col, target_var, lag_cross_corr)
@@ -139,7 +142,7 @@ def include_meteo_variables(df):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    mock = True
+    mock = False
     if mock == False:
         try:
             # Code that might raise an exception
@@ -156,7 +159,15 @@ if __name__ == '__main__':
 
     if 'DATE' in df_month.columns:
         df_month  = df_month.set_index('DATE')
-        df_month = rf.eliminate_rows_from_date(df_month, '2005-10-01')
+        df_month.columns
+    df_month_trans = year_trans.yearly_production_transform(path_df_month = "Output/Excel/df_month.xlsx")
+    if 'DATE' in df_month_trans.columns:
+        df_month_trans = df_month_trans.set_index('DATE')
+
+
+
+    df = df_month_trans[['VIRGEN_EXTRA_EUR_kg','PRODUCTION_HARVEST_REAL_EST','PRODUCTION_HARVEST','DP_PRODUCTION_HARVEST']].copy()
+    df_month = rf.eliminate_rows_from_date(df, '2005-10-01')
 
 
     df_month.columns
@@ -176,7 +187,7 @@ if __name__ == '__main__':
     df_month.columns
     #df_import_pdf_data()
     #df_test = basic_model_df.copy()
-    print_doc_descriptive_vars(basic_model_df)
+    print_doc_descriptive_vars(df_month)
     basic_model_df
 
 

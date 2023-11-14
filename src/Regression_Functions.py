@@ -202,7 +202,7 @@ def back_testing_regression(df, test_sample, horizontes, target_variable='VIRGEN
 
 
 def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, initial_date: str = '2021-11-01',
-                                final_date: str = '2023-09-01', signif: bool = True,
+                                final_date: str = '2023-09-01', signif: bool = False,
                                 regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
@@ -294,16 +294,14 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
 
             df_res['vars'] = [vars]
             df_res['coefs'] = [coefs]
-            df_res['mes_vista'] = [step]
-            df_res['mape'] = [mape]
             df_res['real_date'] = date_max
             df_res['forward_date'] = ind_test
             df_res['Prevision'] = res_pred[0]  # valor predicho
             df_res['Real'] = float(df_test[y_var][0])  # valor real
             # df_res['total_liquid'] = sum(liquid)
             df_res['r2'] = df_reg['r2'][0]
-            df_res['Mape_final'] = df_res.groupby('HARVEST_YEAR')[
-                'PRODUCTION_BEFORE_MARCH'].sum()
+            df_res['mape'] = [mape]
+            df_res['mes_vista'] = [step]
 
             df_total = pd.concat([df_total, df_res], axis=0)
     df_total['Mape_final'] = df_total.groupby('mes_vista')['mape'].transform('mean')
@@ -311,7 +309,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
 
 
 def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2021-11-01',
-                             final_date: str = '2023-09-01', signif: bool = True,
+                             final_date: str = '2023-09-01', signif: bool = False,
                              regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
@@ -403,15 +401,15 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
 
             df_res['vars'] = [vars]
             df_res['coefs'] = [coefs]
-            df_res['mes_vista'] = [step]
-            df_res['mape'] = [mape]
+
             df_res['real_date'] = date_max
             df_res['forward_date'] = date_max_step
             df_res['Prevision'] = res_pred[0]  # valor predicho
             df_res['Real'] = float(df_test[y_var][0])  # valor real
             # df_res['total_liquid'] = sum(liquid)
             df_res['r2'] = df_reg['r2'][0]
-
+            df_res['mape'] = [mape]
+            df_res['mes_vista'] = [step]
 
             df_total = pd.concat([df_total, df_res], axis=0)
     df_total['Mape_final'] = df_total.groupby('mes_vista')['mape'].transform('mean')
@@ -629,6 +627,180 @@ def regression_OLD(dataframe: pd.DataFrame(), variables: list, y_var: str, df_te
 
     return df_resultados
 
+def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'Linear',
+               significativas: bool = False, combs: bool = False, n_vars: int = 4):
+    '''
+    It performs the regression based on the dataframe passed. It outputs a dataframe with all metrics and data relevant to the regression.
+
+    Input:
+        dataframe: Dataframe. Dataframe that contains all variables, the objective function
+        variables: List. List constaining the objective variable values
+        y_var: String. The objective variable  of the regression
+        df_test: Dataframe. It is the test dataframe in which the regression is evaluated
+        reg_type: String. Linear for linear regression or Huber for robust regression
+        significativas: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols.
+        combs: Boolean. It calculates the regression for each combination of variables, with a maximum of n_vars
+        n_vars: Integer. Maximum number of variables passed to the regression. It is used when using the combinations (The parameter combs must be True) and when using Step Wise regression (The parameter signif must be True)
+
+    Output: Dataframe.
+        It outputs a dataframe with multiple columns:
+            Num variables: Number of variables used in the regression
+            Variables: String with the concatenation of the variables used in the regression
+            vars: List of the variables used in the regression
+            formula: String with the formula used in the regression
+            coef: Coefficients of the variables used in the regression
+            intercept: Intercept of the regression
+            r2: R2 of the regression
+            adj_r2: Adjusted R2 of the regression
+            MSE:  Mean Square Error of the regression
+            MAE:  Mean Average Error of the regression
+            MAPE: Mean Average Percentage Error of the regression
+            skewness: skewness of the regression
+            kurtosis: kurtosis of the regression
+            perc_80: Quantile 0.8 of the residuals of the regression
+            perc_95: Quantile 0.95 of the residuals of the regression
+            Cointegrados: If the residuals are cointegrated. 1 if yes, 0 if no
+            Estructura: If the residuals has structure. 1 if yes, 0 if no
+            test: Objective variable real values of the test dataframe
+            pred: Objective variable predictions
+            residuos: Residuals. Objective variable real values minus its predictions
+    '''
+    resultados = []
+    combinaciones = []
+    combinaciones_filtradas = []
+    res_test = []
+    res_pred = []
+
+    if combs:
+        max_variables = min(len(variables), n_vars)
+        for r in range(3, max_variables + 1):
+            combinaciones.extend(itertools.combinations(variables, r))
+
+        for combinacion in combinaciones:
+            has_similar_name = False
+            if len(set([var[:4] for var in combinacion])) == len(combinacion):
+                combinaciones_filtradas.append(combinacion)
+    else:
+        combinaciones_filtradas = list([variables])
+
+    for combinacion in combinaciones_filtradas:
+        variables_comb = list(combinacion)
+        x = dataframe[variables_comb]
+        x = sm.add_constant(x)
+        y = dataframe[y_var]
+        x_test_in_sample = x.copy()
+        y_test_in_sample = y.copy()
+
+        if df_test is None:
+            x_test = x.copy()
+            y_test = y.copy()
+        else:  # IF we are using out-of-sample bt
+            x_test = df_test[variables_comb]
+            x_test = sm.add_constant(x_test)
+            try:
+                y_test = df_test[y_var]
+            except:
+                y_test = pd.Series([0] * len(df_test))
+
+        if significativas:  # Apply Step Wise Regression
+
+            variables_comb = stepwise_regression_OLD(x, y, n_vars)
+
+            x = x[variables_comb]
+            x_test = x_test[variables_comb]
+            x_test_in_sample = x[variables_comb].copy()
+
+        if reg_type == 'Huber':  # Robust regression
+
+            model = HuberRegressor()
+            result = model.fit(x, y)
+
+            coeficientes = model.coef_
+            intercept = model.intercept_
+
+            y_pred_in_sample = result.predict(x_test_in_sample)
+            y_pred = result.predict(x_test)
+            r2 = r2_score(y_test_in_sample, y_pred_in_sample)  # get the r2 in-sample
+
+        if reg_type == 'Linear':  # Linear regression
+
+
+            model = sm.OLS(y, x)
+            result = model.fit()
+
+            coeficientes = result.params
+#            intercept = model.intercept_
+
+            y_pred = result.predict(x_test)
+            y_pred_in_sample = result.predict(x_test_in_sample)
+            r2 = result.rsquared  # get the r2 in-sample
+
+        # Get the formula
+
+        formula = " Y = "
+
+        for i, coef in enumerate(coeficientes):
+            formula += f" + {round(coef, 3)} * {variables_comb[i]}"
+
+        n = len(y_test)  # número de observaciones
+        p = len(variables_comb)  # número de predictores (p): Multivariante
+        adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+
+        if '_log' in y_var:  # If the columns are logs, we have to retransform the results
+
+            y_test = np.exp(y_test)
+            y_pred = np.exp(y_pred)
+
+        mae = mean_absolute_error(y_test, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+
+        # Residuals analysis
+
+        residuos = y_test - y_pred
+
+        skewness = skew(residuos)
+        kurt = kurtosis(residuos)
+        perc_80 = residuos.quantile(0.8)
+        perc_95 = residuos.quantile(0.95)
+
+        if df_test is None:
+            res_adf = adfuller(residuos)
+            if res_adf[1] < 0.05:
+                co_int = 1
+            else:
+                co_int = 0
+
+            lb = acorr_ljungbox(residuos)
+            if any(float(p) < 0.05 for p in lb['lb_pvalue']):
+                estruc = 1
+            else:
+                estruc = 0
+
+        else:
+            co_int = 0
+            estruc = 0
+
+        #   Dataframe creation
+
+        res_test.append(y_test)
+        res_test1 = np.concatenate(res_test).tolist()
+        res_test1 = np.concatenate([np.ravel(rr) for rr in res_test1])
+
+        res_pred.append(y_pred)
+        res_pred1 = np.concatenate(res_pred).tolist()
+        res_pred1 = np.concatenate([np.ravel(rr) for rr in res_pred1])
+
+        resultados.append((len(variables_comb), ', '.join(variables_comb), variables_comb, formula, coeficientes,
+                           intercept, r2, adj_r2, mse, mae, mape, skewness, kurt, perc_80, perc_95, co_int, estruc,
+                           res_test1, res_pred1, np.array(residuos)))
+
+    df_resultados = pd.DataFrame(resultados,
+                                 columns=['Num Variables', 'Variables', 'vars', 'formula', 'coef', 'intercept', 'r2',
+                                          'adj_r2', 'MSE', 'MAE', 'MAPE', 'skewness', 'kurtosis', 'perc_80', 'perc_95',
+                                          'Cointegrados', 'Estructura', 'test', 'pred', 'residuos'])
+
+    return df_resultados
 
 def eliminate_multicollinearity(df, target_var, num_iterations=10, correlation_threshold=0.7):
    # function to be tested to eliminate multicollinearity
@@ -685,6 +857,57 @@ def eliminate_multicollinearity(df, target_var, num_iterations=10, correlation_t
 
 
 
+# function that gets you the intercept for testing
+def rolling_regression_coefficient(df, target_variable, window_size):
+    # calculate the regression for a rolling windows, TO be tested:
+    #todo consider significativity and stepwise inside the rolling
+    results = []
+    n = len(df)
+    df['DATE'] = df.index
+
+    for end_date in range(window_size, n + 1):
+        start_date = end_date - window_size
+
+        # Select the data for the current window
+        window_data = df.iloc[start_date:end_date]
+
+        # Define the target variable and explanatory variables
+        y = window_data[target_variable]
+        X = window_data.drop(columns=[target_variable, 'DATE'])
+
+        # Add a constant (intercept) to the model
+        X = sm.add_constant(X)
+
+        # Fit the linear regression model
+        model = sm.OLS(y, X).fit()
+
+        # Store the regression results
+        r2 = model.rsquared
+        p_values = model.pvalues
+        coef = model.params
+        result_dict = ({
+            'Start Date': window_data['DATE'].iloc[0],
+            'End Date': window_data['DATE'].iloc[-1],
+            'R-squared': r2
+
+        })
+        # Add p-values to the dictionary
+        for col, p_value, c in zip(X.columns, p_values, coef):
+            result_dict[f'p-value, {col}'] = p_value
+            result_dict[f'coefficient, {col}'] = c
+
+        results.append(result_dict)
+    # usage example :
+    #target_variable = 'VIRGEN_EXTRA_EUR_kg'
+    #window_size = 30
+
+    # Run the rolling regression
+    #rolling_results = rolling_regression(datos, target_variable, window_size)
+
+    #rolling_results.to_excel('results_basic_model.xlsx')
+    df.drop(columns=['DATE'],inplace = True)
+    return pd.DataFrame(results)
+
 
 def rolling_regression(df, target_variable, window_size):
     # calculate the regression for a rolling windows, TO be tested:
@@ -733,6 +956,294 @@ def rolling_regression(df, target_variable, window_size):
     #rolling_results.to_excel('results_basic_model.xlsx')
     df.drop(columns=['DATE'],inplace = True)
     return pd.DataFrame(results)
+
+
+
+def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'Linear',
+                       significativas: bool = False, combs: bool = False, n_vars: int = 4):
+    '''
+    It performs the regression based on the dataframe passed. It outputs a dataframe with all metrics and data relevant to the regression.
+
+    Input:
+        dataframe: Dataframe. Dataframe that contains all variables, the objective function
+        variables: List. List constaining the objective variable values
+        y_var: String. The objective variable  of the regression
+        df_test: Dataframe. It is the test dataframe in which the regression is evaluated
+        reg_type: String. Linear for linear regression or Huber for robust regression
+        significativas: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols.
+        combs: Boolean. It calculates the regression for each combination of variables, with a maximum of n_vars
+        n_vars: Integer. Maximum number of variables passed to the regression. It is used when using the combinations (The parameter combs must be True) and when using Step Wise regression (The parameter signif must be True)
+
+    Output: Dataframe.
+        It outputs a dataframe with multiple columns:
+            Num variables: Number of variables used in the regression
+            Variables: String with the concatenation of the variables used in the regression
+            vars: List of the variables used in the regression
+            formula: String with the formula used in the regression
+            coef: Coefficients of the variables used in the regression
+            intercept: Intercept of the regression
+            r2: R2 of the regression
+            adj_r2: Adjusted R2 of the regression
+            MSE:  Mean Square Error of the regression
+            MAE:  Mean Average Error of the regression
+            MAPE: Mean Average Percentage Error of the regression
+            skewness: skewness of the regression
+            kurtosis: kurtosis of the regression
+            perc_80: Quantile 0.8 of the residuals of the regression
+            perc_95: Quantile 0.95 of the residuals of the regression
+            Cointegrados: If the residuals are cointegrated. 1 if yes, 0 if no
+            Estructura: If the residuals has structure. 1 if yes, 0 if no
+            test: Objective variable real values of the test dataframe
+            pred: Objective variable predictions
+            residuos: Residuals. Objective variable real values minus its predictions
+    '''
+    resultados = []
+    combinaciones = []
+    combinaciones_filtradas = []
+    res_test = []
+    res_pred = []
+
+    if combs:
+        max_variables = min(len(variables), n_vars)
+        for r in range(3, max_variables + 1):
+            combinaciones.extend(itertools.combinations(variables, r))
+
+        for combinacion in combinaciones:
+            has_similar_name = False
+            if len(set([var[:4] for var in combinacion])) == len(combinacion):
+                combinaciones_filtradas.append(combinacion)
+    else:
+        combinaciones_filtradas = list([variables])
+
+    for combinacion in combinaciones_filtradas:
+        variables_comb = list(combinacion)
+        x = dataframe[variables_comb].copy()
+       # x = sm.add_constant(x)
+        y = dataframe[y_var]
+        x_test_in_sample = x.copy()
+        y_test_in_sample = y.copy()
+
+        if df_test is None:
+            x_test = x.copy()
+            y_test = y.copy()
+        else:  # IF we are using out-of-sample bt
+            x_test = df_test[variables_comb].copy()
+
+            try:
+                y_test = df_test[y_var]
+            except:
+                y_test = pd.Series([0] * len(df_test))
+
+        if significativas:  # Apply Step Wise Regression
+
+            variables_comb = stepwise_regression_OLD(x, y, n_vars)
+
+            x = x[variables_comb].copy()
+            x_test = x_test[variables_comb]
+            x_test_in_sample = x[variables_comb].copy()
+
+        if reg_type == 'Huber':  # Robust regression
+
+            model = HuberRegressor()
+            result = model.fit(x, y)
+
+            coeficientes = model.coef_
+            intercept = model.intercept_
+
+            y_pred_in_sample = result.predict(x_test_in_sample)
+            y_pred = result.predict(x_test)
+            r2 = r2_score(y_test_in_sample, y_pred_in_sample)  # get the r2 in-sample
+
+        if reg_type == 'Linear':  # Linear regression
+
+            model = sm.OLS(y, x)
+            result = model.fit()
+
+            #print(x_test.columns)
+            coeficientes = result.params
+            #            intercept = model.intercept_
+            y_pred = result.predict(x_test)
+            y_pred_in_sample = result.predict(x_test_in_sample)
+            r2 = result.rsquared  # get the r2 in-sample
+
+        # Get the formula
+
+        formula = " Y = "
+
+        for i, coef in enumerate(coeficientes):
+            formula += f" + {round(coef, 3)} * {variables_comb[i]}"
+
+        n = len(y_test)  # número de observaciones
+        p = len(variables_comb)  # número de predictores (p): Multivariante
+        adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+
+        if '_log' in y_var:  # If the columns are logs, we have to retransform the results
+
+            y_test = np.exp(y_test)
+            y_pred = np.exp(y_pred)
+
+        mae = mean_absolute_error(y_test, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        print(f"y_test{y_test}, y_pred{y_pred}")
+
+        # Residuals analysis
+
+        residuos = y_test - y_pred
+
+        skewness = skew(residuos)
+        kurt = kurtosis(residuos)
+        perc_80 = residuos.quantile(0.8)
+        perc_95 = residuos.quantile(0.95)
+
+        if df_test is None:
+            res_adf = adfuller(residuos)
+            if res_adf[1] < 0.05:
+                co_int = 1
+            else:
+                co_int = 0
+
+            lb = acorr_ljungbox(residuos)
+            if any(float(p) < 0.05 for p in lb['lb_pvalue']):
+                estruc = 1
+            else:
+                estruc = 0
+
+        else:
+            co_int = 0
+            estruc = 0
+
+        #   Dataframe creation
+
+        res_test.append(y_test)
+        res_test1 = np.concatenate(res_test).tolist()
+        res_test1 = np.concatenate([np.ravel(rr) for rr in res_test1])
+
+        res_pred.append(y_pred)
+        res_pred1 = np.concatenate(res_pred).tolist()
+        res_pred1 = np.concatenate([np.ravel(rr) for rr in res_pred1])
+
+        resultados.append((len(variables_comb), ', '.join(variables_comb), variables_comb, formula, coeficientes,
+                         r2, adj_r2, mse, mae, mape, skewness, kurt, perc_80, perc_95, co_int, estruc,
+                           res_test1, res_pred1, np.array(residuos)))
+
+    df_resultados = pd.DataFrame(resultados,
+                                 columns=['Num Variables', 'Variables', 'vars', 'formula', 'coef', 'r2',
+                                          'adj_r2', 'MSE', 'MAE', 'MAPE', 'skewness', 'kurtosis', 'perc_80', 'perc_95',
+                                          'Cointegrados', 'Estructura', 'test', 'pred', 'residuos'])
+
+    return df_resultados
+
+
+def back_testing_regression_rolling_OLD_OLS(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2021-11-01',
+                             final_date: str = '2023-09-01', signif: bool = False,
+                             regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+    """
+    THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
+    Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
+    Input:
+        df: Dataframe. It takes a df with the objective function, and all spot and forward columns. The hedging is done for all dates in the index.
+        x_cols: List of Spot columns. These are the columns that will be selected in the regression
+        y_var: String of the name of the objettve fnction (y)
+        volumen: List. Volume of SSCC for each month
+        initial_date: String. It is the first month in which the hedging is done. It must have the format: 'YYYY-MM-01'
+        final_date: String. It is the last month in which the hedging is done. It must have the format: 'YYYY-MM-01'
+        signif: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols. Only used in the regression.
+        prima: Float. Selected adder (Prima). The prima is added in the final calulations as an addition to the base cash flow
+        regr_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
+        num_variables: Integer. Maximum number of variables to select while doing Step Wise regression, it is applied when signif is True. Only used in the regression.
+        window: Integer. Training window in which the regression is calibrated
+        step_ahead: Integer. Number of months ahead selected to perform hedging in. If step_ahead = 1 it means that the hedging is caculated for 1 month ahead
+    Outputs: Dataframe.
+        Dataframe with the final hedging calculations for each month, it has the following columns:
+            vars: List of the variables used
+            coefs: List of the coefficients used in the regression
+            real_date: Date (Month) in which the hedging is done (m)
+            forward_date: Date (Month) for which the hedging is done
+            sscc_estimado: Estimated value of the SSCC of the months in the test dataframe
+            sscc_spot_m1: Real value of the SSCC of the months in the test dataframe
+            total_liquid: Sum of all liquidations done by the variables
+            r2: R2 of the regression. It is the R2 in-sample.
+            cash_flow_EUR: It is the Cash Flow resulting of the entire hedging process
+            cash_flow_prima_EUR: It is the Cash Flow resulting of the entire hedging process plus an adder
+            cash_flow_inicial: It is the Cash Flow resulting of the initial part of the process. It does not take into account the swap liquidations
+            cash_flow_EUR_MWh: cash_flow_EUR divided by the volume (volumen)
+            cash_flow_prima_EUR_MWh: cash_flow_prima_EUR_MWh divided by the volume (volumen)
+            cash_flow_inicial_EUR_MWh: cash_flow_inicial divided by the volume (volumen)
+            Cuadrados_Sin_C: It is used for the %Mejora metric, it is cash_flow_inicial_EUR_MWh ^2
+            Cuadrados_Con_C: It is used for the %Mejora metric, it is cash_flow_EUR ^2
+
+    """
+
+    df_total = pd.DataFrame()
+
+    # initial_date fecha inicial de prevision
+    # final_date fecha final de prevision
+    d = df.loc[initial_date:].index[0] - relativedelta(months=window)  # Date defiition
+    df = df.loc[d:final_date]
+
+    unique_dates = df.index.unique()  # List of dates of the DataFrame
+    unique_dates1 = unique_dates[:-(window) - (step_ahead) + 1]  # row for the rolling windows
+    for idx, i in enumerate(unique_dates1):
+
+        ###### Date range interval for the train dataset, delimited by the window size
+
+        date = i.date()  # Starting date of the training window
+        date_max = unique_dates[
+            idx + window - 1].date()  # End date of the training window. Month in which I perform the hedging
+
+
+        df_out2 = df.loc[date: date_max]  # Dataframe with training window
+
+
+        for step in range(1,
+                          step_ahead + 1):  # Iteration on each month of the test window delimited by the step_ahead parameter
+            # vol_index = step -1
+            df_res = pd.DataFrame()
+
+            date_max_step = unique_dates[idx + window + step - 1].date()  # Date of each step
+
+
+            df_test = df.loc[date_max_step: date_max_step]
+
+            print(F"date{date} ,date_max_step: {date_max_step}, step {step}")
+            ###### Regression with the forward values
+            #adding the constant cause the library statsmodel need it while skkit learn does not
+            if regr_type=='Linear':
+                df_out2 = sm.add_constant(df_out2)
+            df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type, significativas=signif,n_vars=num_variables)
+
+            ###### Calculate liquidations: LIQUIDATIONS
+
+            # liquid = []
+            vars = df_reg['vars'][0]
+            coefs = df_reg['coef'][0]
+            mape = df_reg['MAPE'][0]
+            # new
+
+
+
+
+            res_pred = np.concatenate([np.ravel(rr) for rr in df_reg['pred']])
+
+            ###### CALCULATIONS
+
+            df_res['vars'] = [vars]
+            df_res['coefs'] = [coefs]
+
+            df_res['real_date'] = date_max
+            df_res['forward_date'] = date_max_step
+            df_res['Prevision'] = res_pred[0]  # valor predicho
+            df_res['Real'] = float(df_test[y_var][0])  # valor real
+            # df_res['total_liquid'] = sum(liquid)
+            df_res['r2'] = df_reg['r2'][0]
+            df_res['mape'] = [mape]
+            df_res['mes_vista'] = [step]
+
+            df_total = pd.concat([df_total, df_res], axis=0)
+    df_total['Mape_final'] = df_total.groupby('mes_vista')['mape'].transform('mean')
+    return df_total.reset_index(drop=True)
+
 
 
 
