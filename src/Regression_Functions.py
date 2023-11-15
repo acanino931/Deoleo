@@ -4,7 +4,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from statsmodels.tsa.arima.model import ARIMA
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-
+import Aux_functions as aux
 from sklearn.linear_model import LinearRegression, HuberRegressor
 from sklearn.metrics import r2_score, mean_absolute_error,mean_squared_error, mean_absolute_percentage_error
 from scipy.stats import kurtosis, skew
@@ -30,18 +30,14 @@ def remove_null_rows(df,target_variable = 'VIRGEN_EXTRA_EUR_kg'):
     x_data = sm.add_constant(x_data)
     return (x_data,y_data,max_data_no_missing, column_data_max)
 
-def shuffle_columns(df):
-    columns = list(df.columns)
-    np.random.shuffle(columns)
-    shuffled_df = df[columns]
-    return shuffled_df
+
 
 def stepwise_eliminating(df, target_variable, iterations):
     ls_to_del = []
     data = []  # Initialize an empty list to collect dictionaries
 
     for i in range(iterations):
-        df1 = shuffle_columns(df)
+        df1 = aux.shuffle_columns(df)
         df1 = df1.drop(columns=ls_to_del)
         X, y, max_data_no_missing, column_data_max = remove_null_rows(df1, target_variable=target_variable)
         # Fit the regression model
@@ -203,7 +199,7 @@ def back_testing_regression(df, test_sample, horizontes, target_variable='VIRGEN
 
 def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, initial_date: str = '2021-11-01',
                                 final_date: str = '2023-09-01', signif: bool = False,
-                                regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+                                regr_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
     Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
@@ -243,6 +239,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
 
     df_total = pd.DataFrame()
 
+
     # initial_date fecha inicial de prevision
     # final_date fecha final de prevision
     d = df.loc[initial_date:].index[0] - relativedelta(months=1)  # Date defiition
@@ -266,17 +263,20 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
         #print(df_out2.index)
 
         for step in range(1,
-                          step_ahead + 1):  # Iteration on each month of the test window delimited by the step_ahead parameter
+            step_ahead + 1):  # Iteration on each month of the test window delimited by the step_ahead parameter
             # vol_index = step -1
             df_res = pd.DataFrame()
 
             ind_test = df.loc[date_max:date_max].index[0] + relativedelta(months=step)  # Date defiition
             df_test = df.loc[ind_test: ind_test]
+            if regr_type == 'OLS':
+                df_test = sm.add_constant(df_test)
             #print(df_test.index)
 
             ###### Regression with the forward values
-
-            df_reg = regression_OLD(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+            if regr_type=='OLS':
+                df_out2 = sm.add_constant(df_out2)
+            df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
                                     significativas=signif,
                                     n_vars=num_variables)
 
@@ -310,7 +310,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
 
 def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2021-11-01',
                              final_date: str = '2023-09-01', signif: bool = False,
-                             regr_type='Linear', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+                             regr_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
     Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
@@ -347,6 +347,9 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             Cuadrados_Con_C: It is used for the %Mejora metric, it is cash_flow_EUR ^2
 
     """
+    if regr_type=='OLS':
+        x_cols = sm.add_constant(x_cols)
+
 
     df_total = pd.DataFrame()
 
@@ -357,7 +360,6 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
 
     unique_dates = df.index.unique()  # List of dates of the DataFrame
     unique_dates1 = unique_dates[:-(window) - (step_ahead) + 1]  # row for the rolling windows
-
     for idx, i in enumerate(unique_dates1):
 
         ###### Date range interval for the train dataset, delimited by the window size
@@ -377,12 +379,22 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
 
             date_max_step = unique_dates[idx + window + step - 1].date()  # Date of each step
 
+
             df_test = df.loc[date_max_step: date_max_step]
+            print(F"date{date} ,date_max_step: {date_max_step}, step {step}")
+
 
             ###### Regression with the forward values
+            #adding the constant cause the library statsmodel need it while skkit learn does not
+            if regr_type=='OLS':
+                df_out2 = sm.add_constant(df_out2)
+                df_test.insert(0, 'const', 1.0)
+                df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type, significativas=signif,n_vars=num_variables)
 
-            df_reg = regression_OLD(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type, significativas=signif,
-                                n_vars=num_variables)
+            if regr_type == 'Linear':
+                df_reg = regression_OLD_original(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+                                                 significativas=signif,
+                                                 n_vars=num_variables)
 
             ###### Calculate liquidations: LIQUIDATIONS
 
@@ -390,6 +402,9 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             vars = df_reg['vars'][0]
             coefs = df_reg['coef'][0]
             mape = df_reg['MAPE'][0]
+            if regr_type != 'OLS':
+                intercept = df_reg['intercept'][0]
+
             # new
 
 
@@ -400,6 +415,8 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             ###### CALCULATIONS
 
             df_res['vars'] = [vars]
+            if regr_type != 'OLS':
+                df_res['intercept'] = [intercept]
             df_res['coefs'] = [coefs]
 
             df_res['real_date'] = date_max
@@ -414,6 +431,7 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             df_total = pd.concat([df_total, df_res], axis=0)
     df_total['Mape_final'] = df_total.groupby('mes_vista')['mape'].transform('mean')
     return df_total.reset_index(drop=True)
+
 
 
 def stepwise_regression_OLD(X, y, n_vars: int = 4):
@@ -433,7 +451,10 @@ def stepwise_regression_OLD(X, y, n_vars: int = 4):
     '''
     included = list(X.columns)
     while True:
-        model = sm.OLS(y, sm.add_constant(X[included])).fit()
+        if 'const' in included:
+            model = sm.OLS(y, (X[included])).fit()
+        else:
+            model = sm.OLS(y, sm.add_constant(X[included])).fit()
         #print(model.summary())
 
         max_pval = model.pvalues[1:].max()  # Excluye el p-valor del intercepto
@@ -455,7 +476,7 @@ def stepwise_regression_OLD(X, y, n_vars: int = 4):
     return included
 
 
-def regression_OLD(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'Linear',
+def regression_OLD_original(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'Linear',
                significativas: bool = False, combs: bool = False, n_vars: int = 4):
     '''
     It performs the regression based on the dataframe passed. It outputs a dataframe with all metrics and data relevant to the regression.
@@ -627,8 +648,9 @@ def regression_OLD(dataframe: pd.DataFrame(), variables: list, y_var: str, df_te
 
     return df_resultados
 
-def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'Linear',
-               significativas: bool = False, combs: bool = False, n_vars: int = 4):
+
+def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'OLS',
+                       significativas: bool = False, combs: bool = False, n_vars: int = 4):
     '''
     It performs the regression based on the dataframe passed. It outputs a dataframe with all metrics and data relevant to the regression.
 
@@ -685,8 +707,8 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
 
     for combinacion in combinaciones_filtradas:
         variables_comb = list(combinacion)
-        x = dataframe[variables_comb]
-        x = sm.add_constant(x)
+        x = dataframe[variables_comb].copy()
+       # x = sm.add_constant(x)
         y = dataframe[y_var]
         x_test_in_sample = x.copy()
         y_test_in_sample = y.copy()
@@ -695,8 +717,8 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
             x_test = x.copy()
             y_test = y.copy()
         else:  # IF we are using out-of-sample bt
-            x_test = df_test[variables_comb]
-            x_test = sm.add_constant(x_test)
+            x_test = df_test[variables_comb].copy()
+
             try:
                 y_test = df_test[y_var]
             except:
@@ -706,7 +728,7 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
 
             variables_comb = stepwise_regression_OLD(x, y, n_vars)
 
-            x = x[variables_comb]
+            x = x[variables_comb].copy()
             x_test = x_test[variables_comb]
             x_test_in_sample = x[variables_comb].copy()
 
@@ -722,15 +744,14 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
             y_pred = result.predict(x_test)
             r2 = r2_score(y_test_in_sample, y_pred_in_sample)  # get the r2 in-sample
 
-        if reg_type == 'Linear':  # Linear regression
-
+        if reg_type == 'OLS':  # Linear regression
 
             model = sm.OLS(y, x)
             result = model.fit()
 
+            #print(x_test.columns)
             coeficientes = result.params
-#            intercept = model.intercept_
-
+            #            intercept = model.intercept_
             y_pred = result.predict(x_test)
             y_pred_in_sample = result.predict(x_test_in_sample)
             r2 = result.rsquared  # get the r2 in-sample
@@ -754,6 +775,7 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
         mae = mean_absolute_error(y_test, y_pred)
         mse = mean_squared_error(y_test, y_pred)
         mape = mean_absolute_percentage_error(y_test, y_pred)
+        print(f"y_test{y_test}, y_pred{y_pred}")
 
         # Residuals analysis
 
@@ -792,11 +814,11 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
         res_pred1 = np.concatenate([np.ravel(rr) for rr in res_pred1])
 
         resultados.append((len(variables_comb), ', '.join(variables_comb), variables_comb, formula, coeficientes,
-                           intercept, r2, adj_r2, mse, mae, mape, skewness, kurt, perc_80, perc_95, co_int, estruc,
+                         r2, adj_r2, mse, mae, mape, skewness, kurt, perc_80, perc_95, co_int, estruc,
                            res_test1, res_pred1, np.array(residuos)))
 
     df_resultados = pd.DataFrame(resultados,
-                                 columns=['Num Variables', 'Variables', 'vars', 'formula', 'coef', 'intercept', 'r2',
+                                 columns=['Num Variables', 'Variables', 'vars', 'formula', 'coef', 'r2',
                                           'adj_r2', 'MSE', 'MAE', 'MAPE', 'skewness', 'kurtosis', 'perc_80', 'perc_95',
                                           'Cointegrados', 'Estructura', 'test', 'pred', 'residuos'])
 
@@ -857,7 +879,7 @@ def eliminate_multicollinearity(df, target_var, num_iterations=10, correlation_t
 
 
 
-# function that gets you the intercept for testing
+# function that gets you the intercept for thesting
 def rolling_regression_coefficient(df, target_variable, window_size):
     # calculate the regression for a rolling windows, TO be tested:
     #todo consider significativity and stepwise inside the rolling
@@ -907,6 +929,8 @@ def rolling_regression_coefficient(df, target_variable, window_size):
     #rolling_results.to_excel('results_basic_model.xlsx')
     df.drop(columns=['DATE'],inplace = True)
     return pd.DataFrame(results)
+
+
 
 
 def rolling_regression(df, target_variable, window_size):

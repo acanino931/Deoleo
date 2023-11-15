@@ -27,9 +27,14 @@ def compute_perc_harvest_post_march (df):
 
     return(average,aggregated_df_fin['PERCENTAGE_HARVEST_POST_MARCH'] )
 
-
+def shuffle_columns(df):
+    columns = list(df.columns)
+    np.random.shuffle(columns)
+    shuffled_df = df[columns]
+    return shuffled_df
 
 def add_average_row(df):
+    # used for pdf data to calculate the mean of the rows, it's useful when u have all of the value of the df to be aggregated.
     means = []
     for column_name in df.columns:
         if pd.api.types.is_numeric_dtype(df[column_name]):
@@ -70,6 +75,7 @@ def group_into_montly_data(df, index:bool, date_col_name ='DATE'):
     return df_monthly_grouped
 
 def drop_columns_with_zeros(df):
+    # function used for pdf data
     # Check if a column has only 0 values
     columns_to_drop = [col for col in df.columns if (df[col] == 0).all()]
 

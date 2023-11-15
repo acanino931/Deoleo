@@ -54,7 +54,7 @@ def aggregate_mountly_data(df1):
     df['Year'] = df.index.year
     df_fin = pd.DataFrame()
     for col in df.columns:
-            if 'area' in col:
+            if 'area' in col or 'HARVEST' in col:
                 df_fin[col] = df.groupby('Year')[col].mean()
             elif col == 'Year':
                 df_fin[col] = df.groupby('Year')[col].mean().astype(int)
