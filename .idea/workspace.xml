@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="added Peña, changed OLS for backtesting rolling">
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="backtesting added ols and constant">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prova.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/prova.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/aux_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/yearly_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/yearly_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -318,7 +314,14 @@
       <option name="project" value="LOCAL" />
       <updated>1699980491520</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="backtesting added ols and constant">
+      <created>1700073865311</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1700073865311</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -360,7 +363,8 @@
     <MESSAGE value="nexus (step and backtensing) and production forecast added" />
     <MESSAGE value="backtest expanding added" />
     <MESSAGE value="added Peña, changed OLS for backtesting rolling" />
-    <option name="LAST_COMMIT_MESSAGE" value="added Peña, changed OLS for backtesting rolling" />
+    <MESSAGE value="backtesting added ols and constant" />
+    <option name="LAST_COMMIT_MESSAGE" value="backtesting added ols and constant" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -377,11 +381,6 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Test_BackTesting.py</url>
-          <line>654</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Test_BackTesting.py</url>
           <line>573</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
@@ -392,13 +391,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Test_BackTesting.py</url>
-          <line>840</line>
-          <option name="timeStamp" value="22" />
+          <line>78</line>
+          <option name="timeStamp" value="29" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/Regression_Functions.py</url>
+          <line>238</line>
+          <option name="timeStamp" value="31" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/Regression_Functions.py</url>
+          <line>461</line>
+          <option name="timeStamp" value="33" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Test_BackTesting.py</url>
-          <line>78</line>
-          <option name="timeStamp" value="29" />
+          <line>840</line>
+          <option name="timeStamp" value="34" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
