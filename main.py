@@ -164,17 +164,17 @@ if __name__ == '__main__':
     if 'DATE' in df_month_trans.columns:
         df_month_trans = df_month_trans.set_index('DATE')
 
-
+    df_month = df_month_trans.copy()
 
     df = df_month_trans[['VIRGEN_EXTRA_EUR_kg','PRODUCTION_HARVEST_REAL_EST','PRODUCTION_HARVEST','DP_PRODUCTION_HARVEST']].copy()
     df_month = rf.eliminate_rows_from_date(df, '2005-10-01')
 
+    #df_month_pdf.to_excel("Output/Excel/Fisicas_pdf_2nd_Review.xlsx")
 
-    df_month.columns
-    df_month = df_month[['VIRGEN_EXTRA_EUR_kg']].copy()
-    df_month
-    #df_month = include_meteo_variables(df_month)
-   # df_pdf = imd.import_pdf_data()
+    df_month = df_month_trans.copy()
+   # df_month = df_month[['VIRGEN_EXTRA_EUR_kg']].copy()
+    df_month = include_meteo_variables(df_month)
+    #df_pdf = imd.import_pdf_data()
     df_month_pdf = imd.include_pdf_data(df_month)
     df_month_pdf.columns
     df_month_pdf = rf.eliminate_rows_from_date(df_month_pdf, '2005-10-01')
@@ -214,7 +214,13 @@ if __name__ == '__main__':
 
     # graficas Modelo basico Review :
     df_month = df_month.fillna(method='ffill')
-    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS']].copy()
+    df_month.columns
+    df_month = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS']].copy()
+    df_month = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS',
+                               'PRODUCTION_HARVEST_REAL_EST', 'PRODUCTION_HARVEST_LAST_YEAR','PRODUCTION_HARVEST_2_YEARS','DP_PRODUCTION_HARVEST' ]]
+
+    basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS',
+                               'PRODUCTION_HARVEST_REAL_EST', 'PRODUCTION_HARVEST_LAST_YEAR','PRODUCTION_HARVEST_2_YEARS','DP_PRODUCTION_HARVEST' ]]
    # basic_model_df.drop(columns=['EXTERNAL_DEMAND'], inplace=True)
 
     #print_doc_descriptive_vars(basic_model_df, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
@@ -223,12 +229,14 @@ if __name__ == '__main__':
     # SECOND VERSION Modelo Basico
 
     basic_model_df['IMPORTS_LAG_21'] = basic_model_df['IMPORTS'].shift(21)
-    basic_model_df['TOTAL_CONS_LAG_21'] = basic_model_df['TOTAL_CONS'].shift(12)
+    basic_model_df['TOTAL_CONS_LAG_12'] = basic_model_df['TOTAL_CONS'].shift(12)
     basic_model_df['PRODUCTION_HARVEST_LAG_8'] = basic_model_df['PRODUCTION_HARVEST'].shift(8)
     basic_model_df['EXPORTS_LAG_12'] = basic_model_df['EXPORTS'].shift(12)
     basic_model_df['TOTAL_DEMAND_LAG_12'] = basic_model_df['TOTAL_DEMAND'].shift(12)
     basic_model_df['PRODUCTION_18'] = basic_model_df['PRODUCTION'].shift(18)
     basic_model_df['INTERNAL_DEMAND_12'] = basic_model_df['INTERNAL_DEMAND'].shift(12)
+    basic_model_df['PRODUCTION_HARVEST_REAL_EST_LAG_14'] = basic_model_df['PRODUCTION_HARVEST_REAL_EST'].shift(14)
+    basic_model_df['DP_PRODUCTION_HARVEST_LAG_14'] = basic_model_df['DP_PRODUCTION_HARVEST'].shift(14)
     basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2005-10-01')
 
     basic_model_df

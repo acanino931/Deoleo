@@ -12,6 +12,7 @@ from itertools import product
 from unidecode import unidecode
 import tabula
 from src import Aux_functions as aux
+from src import yearly_functions as yf
 
 
 def import_montly_andalucia():
@@ -393,6 +394,9 @@ def load_data():
         # we start considering the effect from the quantity of the harvest from March since the new harvest it's nearly over
 
         df_month = pd.merge(df_month, df_production_agg, left_index=True, right_index=True, how='left')
+        # this copy is made for feed the Daniel Peña transformation where the shift will be applied to the target variable direclty
+        df_month['PRODUCTION_HARVEST_ORIGINAL'] = df_month['PRODUCTION_HARVEST'].copy()
+        df_month['PRODUCTION_HARVEST_ORIGINAL'] = df_month['PRODUCTION_HARVEST_ORIGINAL'].fillna(method='ffill', limit =11)
         df_month['PRODUCTION_HARVEST'] = df_month['PRODUCTION_HARVEST'].shift(2)
         average_prod_post_march, prec = aux.compute_perc_harvest_post_march(df_month)
         average_prod_post_march = 1 - (average_prod_post_march / 100)
@@ -401,6 +405,13 @@ def load_data():
         df_month = transform_dataframe(df_month, previsiones, average_prod_post_march)
         df_month['PRODUCTION_HARVEST_LAST_YEAR'] = df_month['PRODUCTION_HARVEST'].shift(12)
         df_month['PRODUCTION_HARVEST_2_YEARS'] = df_month['PRODUCTION_HARVEST'].shift(24)
+
+        # importing production forecast data
+        prevision_df = yf.preprocess_prevision_data(df_month)
+        col_index = prevision_df.index.name
+        prevision_df1 = aux.from_yearly_to_monthly(prevision_df, column_index=col_index, transpose=False)
+
+        df_month = pd.merge(df_month, prevision_df1, right_index=True, left_index=True, how='left')
 
         #df_month.drop (columns =['HARVEST_YEAR'],inplace = True)
 
@@ -527,6 +538,7 @@ def import_single_pdf(path_file ,filename) :
 
     df = df.rename(columns={'COUNTRY': 'YEAR'})
 
+    # from year start substituting with func : aux.from_yearly_to_monthly()
     # GETTING THE CORRECT TYPE  OF THE INDEX TO RESAMPLE THE DATA INTO MOUNTHLY
     df.set_index('YEAR', inplace=True)
     df_transposed = df.transpose()
@@ -554,6 +566,7 @@ def import_single_pdf(path_file ,filename) :
     df_transposed_fin = pd.concat([df_transposed, extended_df], axis=0)
     # what out with the ffil we can imput automatically values to missing year make a control over the value we inputing
     df_transposed_fin = df_transposed_fin.fillna(method="ffill", limit=11)
+    # to here stop substituting with func : aux.from_yearly_to_monthly() and test it
 
     # shift the 1st 3 month to have cross data like the starting ones
     df_transposed_fin_shifted = df_transposed_fin.shift(-3)

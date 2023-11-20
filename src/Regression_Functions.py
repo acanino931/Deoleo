@@ -199,7 +199,7 @@ def back_testing_regression(df, test_sample, horizontes, target_variable='VIRGEN
 
 def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, initial_date: str = '2021-11-01',
                                 final_date: str = '2023-09-01', signif: bool = False,
-                                regr_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+                                reg_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
     Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
@@ -212,7 +212,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
         final_date: String. It is the last month in which the hedging is done. It must have the format: 'YYYY-MM-01'
         signif: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols. Only used in the regression.
         prima: Float. Selected adder (Prima). The prima is added in the final calulations as an addition to the base cash flow
-        regr_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
+        reg_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
         num_variables: Integer. Maximum number of variables to select while doing Step Wise regression, it is applied when signif is True. Only used in the regression.
         window: Integer. Training window in which the regression is calibrated
         step_ahead: Integer. Number of months ahead selected to perform hedging in. If step_ahead = 1 it means that the hedging is caculated for 1 month ahead
@@ -236,7 +236,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
             Cuadrados_Con_C: It is used for the %Mejora metric, it is cash_flow_EUR ^2
 
     """
-    if regr_type=='OLS':
+    if reg_type=='OLS':
         x_cols = sm.add_constant(x_cols)
     df_total = pd.DataFrame()
 
@@ -274,15 +274,15 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
             #print(df_test.index)
 
             ###### Regression with the forward values
-            if regr_type=='OLS':
+            if reg_type=='OLS':
                 df_out2 = sm.add_constant(df_out2)
                 df_test.insert(0, 'const', 1.0)
-                df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+                df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=reg_type,
                                     significativas=signif,
                                     n_vars=num_variables)
 
-            if regr_type == 'Linear':
-                df_reg = regression_OLD_original(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+            if reg_type == 'Linear':
+                df_reg = regression_OLD_original(df_out2, x_cols, y_var, df_test=df_test, reg_type=reg_type,
                                                  significativas=signif,
                                                  n_vars=num_variables)
 
@@ -292,7 +292,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
             vars = df_reg['vars'][0]
             coefs = df_reg['coef'][0]
             mape = df_reg['MAPE'][0]
-            if regr_type != 'OLS':
+            if reg_type != 'OLS':
                 intercept = df_reg['intercept'][0]
             # new
 
@@ -301,7 +301,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
             ###### CALCULATIONS
 
             df_res['vars'] = [vars]
-            if regr_type != 'OLS':
+            if reg_type != 'OLS':
                 df_res['intercept'] = [intercept]
             df_res['coefs'] = [coefs]
             df_res['real_date'] = date_max
@@ -320,7 +320,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
 
 def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2021-11-01',
                              final_date: str = '2023-09-01', signif: bool = False,
-                             regr_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+                             reg_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
     Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
@@ -333,7 +333,7 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
         final_date: String. It is the last month in which the hedging is done. It must have the format: 'YYYY-MM-01'
         signif: Boolean. True to apply the Step Wise method in the regression. False to select all variales passed in x_cols. Only used in the regression.
         prima: Float. Selected adder (Prima). The prima is added in the final calulations as an addition to the base cash flow
-        regr_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
+        reg_type: String. Linear, for linear regression, or Huber, for robust regression. Only used in the regression.
         num_variables: Integer. Maximum number of variables to select while doing Step Wise regression, it is applied when signif is True. Only used in the regression.
         window: Integer. Training window in which the regression is calibrated
         step_ahead: Integer. Number of months ahead selected to perform hedging in. If step_ahead = 1 it means that the hedging is caculated for 1 month ahead
@@ -357,7 +357,7 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             Cuadrados_Con_C: It is used for the %Mejora metric, it is cash_flow_EUR ^2
 
     """
-    if regr_type=='OLS':
+    if reg_type=='OLS':
         x_cols = sm.add_constant(x_cols)
 
 
@@ -396,13 +396,13 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
 
             ###### Regression with the forward values
             #adding the constant cause the library statsmodel need it while skkit learn does not
-            if regr_type=='OLS':
+            if reg_type=='OLS':
                 df_out2 = sm.add_constant(df_out2)
                 df_test.insert(0, 'const', 1.0)
-                df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type, significativas=signif,n_vars=num_variables)
+                df_reg = regression_OLD_OLS(df_out2, x_cols, y_var, df_test=df_test, reg_type=reg_type, significativas=signif,n_vars=num_variables)
 
-            if regr_type == 'Linear':
-                df_reg = regression_OLD_original(df_out2, x_cols, y_var, df_test=df_test, reg_type=regr_type,
+            if reg_type == 'Linear':
+                df_reg = regression_OLD_original(df_out2, x_cols, y_var, df_test=df_test, reg_type=reg_type,
                                                  significativas=signif,
                                                  n_vars=num_variables)
 
@@ -412,7 +412,7 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             vars = df_reg['vars'][0]
             coefs = df_reg['coef'][0]
             mape = df_reg['MAPE'][0]
-            if regr_type != 'OLS':
+            if reg_type != 'OLS':
                 intercept = df_reg['intercept'][0]
 
             # new
@@ -425,7 +425,7 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
             ###### CALCULATIONS
 
             df_res['vars'] = [vars]
-            if regr_type != 'OLS':
+            if reg_type != 'OLS':
                 df_res['intercept'] = [intercept]
             df_res['coefs'] = [coefs]
 
