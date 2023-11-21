@@ -412,7 +412,7 @@ def load_data():
         prevision_df1 = aux.from_yearly_to_monthly(prevision_df, column_index=col_index, transpose=False)
 
         df_month = pd.merge(df_month, prevision_df1, right_index=True, left_index=True, how='left')
-
+        df_month['Estimación España (Junta Andalucia)'] = df_month['Estimación España (Junta Andalucia)'].shift(6)
         #df_month.drop (columns =['HARVEST_YEAR'],inplace = True)
 
 
@@ -444,6 +444,7 @@ def load_and_transform_previsiones(filename = "Datos/previsiones.xlsx"):
     return previsiones
 
 def transform_dataframe(dataframe, previsiones, proporcion):
+    #Now the prediction data starts in August
     # Convert 'DATE' column to datetime
     if 'DATE' not in dataframe.columns:
         dataframe['DATE'] = dataframe.index
@@ -455,9 +456,9 @@ def transform_dataframe(dataframe, previsiones, proporcion):
         month = row['DATE'].month
         year = row['DATE'].year
 
-        if 3 <= month <= 6:
+        if 3 <= month <= 7:
             return row['PRODUCTION_HARVEST']
-        elif 7 <= month <= 12:
+        elif 8 <= month <= 12:
             condition = (previsiones['Año Inicio'] == year)
         else:
             condition = (previsiones['Año Fin'] == year)
@@ -618,44 +619,102 @@ def include_pdf_data(df):
     df = df.merge(df_pdf, left_index=True, right_index=True, how='left')
     return df
 
-def import_meteo_single_province(path_folder,province_name, start_date ='2001-01-01',end_date = '2023-09-30'):
-    # read all the excel files of a province and put it in a df.
-    # linares and Marmolejo ( Jaen) are out because they are fragmented in 2 files from the web
-    # supposibly it should be done a concat of the 2 original file and merging them separately at the end of 1st for
-    #path = "C:/Users/acanino/PycharmProjects/Deoleo/Datos/Datos_Cordoba"
-    # creating all the timestamps of the final df
-    all_dates = pd.DataFrame({'Timestamp': pd.date_range(start=start_date, end=end_date)})
-    all_dates['Timestamp'] = pd.to_datetime(all_dates['Timestamp'])
-    all_dates.set_index('Timestamp', inplace=True)
-    for file in os.listdir(path_folder):
-        print(file)
-        sheet = pd.read_csv(path_folder + "/" + file, sep=';', decimal=',', encoding='utf-8')
-        sheet['FECHA'] = pd.to_datetime(sheet['FECHA'], format='%d/%m/%y')
-        sheet.drop(columns=['DIA'],inplace=True)
-        sheet.rename(columns={'FECHA': 'DATE'}, inplace=True)
-        sheet.set_index('DATE',inplace = True)
-        all_dates = all_dates.merge(sheet, left_index=True, right_index=True, how='left')
+def include_meteo_variables(start_date='2001-01-01', end_date='2023-09-01'): # add param df
+    ls_province = ["Cordoba","Jaen"]
+    monthly_index = pd.date_range(start=start_date, end=end_date, freq='MS')
+    df_meteo = pd.DataFrame(index=monthly_index)
+    for province in ls_province :
 
-    # listing the variables suffix
-    suffix_list = ['TMax', 'TMin', 'TMed', 'Precip']
-    for suffix in suffix_list:
-        average_lambda = lambda row: pd.to_numeric(row.filter(like=suffix), errors='coerce').mean()
-        all_dates[suffix+'_Average_' + province_name] = all_dates.apply(average_lambda, axis=1)
+        df_province = import_meteo_single_province(f"Datos/Datos_{province}", province) # "Datos/Datos_Cordoba", "Cordoba")
+        #df_jaen = import_meteo_single_province("Datos/Datos_Jaen", "Jaen")
+        df_meteo = df_meteo.merge(df_province, left_index=True, right_index=True, how='left')
 
-    for col in all_dates.columns:
-        if "Average" in col:
-            null_average_rows = all_dates[all_dates[col].isnull()]
-            print(null_average_rows)
-            all_dates[col].fillna(method="ffill").fillna(method="bfill")
+    print("tutto ok")
+    unique_vars = set(col.rsplit('_', 1)[0] for col in df_meteo.columns)
 
-    avg = 'Average'
-    df_selected = all_dates[all_dates.columns[all_dates.columns.str.contains(avg)]]
+    # Create a third DataFrame with mean values for each group of similar variables
+    df_andalucia = pd.DataFrame()
+    for var in unique_vars:
+        matching_columns = [col for col in df_meteo.columns if col.startswith(var)]
+        df_andalucia[var + '_Andalucia'] = df_meteo[matching_columns].mean(axis=1)
 
-    df_out= aux.group_into_montly_data(df_selected, index =True)
-    df_out.set_index('DATE',inplace=True)
+    #df = df.merge(df_meteo, left_index=True, right_index=True, how='left')
+    return df_andalucia#df
 
-    return df_out
+def import_meteo_single_province(path_folder, province_name, start_date='2001-01-01', end_date='2023-09-30'):
+        # read all the excel files of a province and put it in a df.
+        # linares and Marmolejo ( Jaen) are out because they are fragmented in 2 files from the web
+        # supposibly it should be done a concat of the 2 original file and merging them separately at the end of 1st for
+        # path = "C:/Users/acanino/PycharmProjects/Deoleo/Datos/Datos_Cordoba"
+        # creating all the timestamps of the final df otherwise change the prefix custom to the duplicate files
+        all_dates = pd.DataFrame({'Timestamp': pd.date_range(start=start_date, end=end_date)})
+        all_dates['Timestamp'] = pd.to_datetime(all_dates['Timestamp'])
+        all_dates.set_index('Timestamp', inplace=True)
+        for file in os.listdir(path_folder):
+                print(file)
+                sheet = pd.read_csv(path_folder + "/" + file, sep=';', decimal=',', encoding='utf-8')
+                sheet['FECHA'] = pd.to_datetime(sheet['FECHA'], format='%d/%m/%y')
+                sheet.drop(columns=['DIA'], inplace=True)
+                sheet.rename(columns={'FECHA': 'DATE'}, inplace=True)
 
+                # adding a column count of days with temperature max above than 33 degrees
+                tmax_column = [col for col in sheet.columns if 'TMax' in col][0]
+                rain_column = [col for col in sheet.columns if 'Precip' in col][0]
+                prefix_num = aux.try_parse(sheet.columns[1])
+                prefix= (sheet.columns[1])[0:2] + str(prefix_num)
+                if file == 'Torreperogil_5years.csv':
+                    prefix = 'JaXX'
+                if file == 'Villacarrillo.csv':
+                    prefix = 'JaYY'
+                print(prefix)
+                # Convert 'TMax' column to float, handling errors by returning None
+                sheet[tmax_column] = sheet[tmax_column].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+                sheet[rain_column] = sheet[rain_column].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+                sheet[f"{prefix}days_above_33"] = sheet.groupby('DATE')[tmax_column].transform(lambda x: x.gt(33).sum())
+
+                sheet.set_index('DATE', inplace=True)
+                all_dates = all_dates.merge(sheet, left_index=True, right_index=True, how='left')
+                print(f"sheet{sheet.columns}")
+                print(f"all_dates{all_dates.columns}")
+
+                # Count the number of days above 30 for each month
+
+        # listing the variables suffix
+        suffix_list = ['TMax', 'TMin', 'TMed', 'Precip','days_above_33']
+        for suffix in suffix_list:
+                average_lambda = lambda row: pd.to_numeric(row.filter(like=suffix), errors='coerce').mean()
+                all_dates[suffix + '_Average_' + province_name] = all_dates.apply(average_lambda, axis=1)
+
+        for col in all_dates.columns:
+                if "Average" in col:
+                        null_average_rows = all_dates[all_dates[col].isnull()]
+                        print(null_average_rows)
+                        all_dates[col].fillna(method="ffill").fillna(method="bfill")
+
+        avg = 'Average'
+        dummy_hot  = [col for col in all_dates.columns if 'days_above_33_Average' in col][0]
+        dummy_precip = [col for col in all_dates.columns if 'Precip_Average' in col][0]
+        ndays_rain = "ndays_" +dummy_precip
+        all_dates[dummy_hot] = np.where(all_dates[dummy_hot] > 0.125, 1, 0)
+        all_dates[ndays_rain] = np.where(all_dates[dummy_precip] > 0.125, 1, 0)
+        cumulated_rain = "cumulated_month_" +dummy_precip
+        all_dates[cumulated_rain] = all_dates[dummy_precip]
+
+
+        df_selected = all_dates[all_dates.columns[all_dates.columns.str.contains(avg)]]
+        df_out = aux.group_into_monthly_data_new(df_selected, index=True, sum_fields= [dummy_hot,ndays_rain,cumulated_rain])
+
+
+        df_out.set_index('DATE', inplace=True)
+        cumulated_rain_year = cumulated_rain.replace("month","year")
+        df_out[cumulated_rain_year] = df_out.groupby(df_out.index.year)[cumulated_rain].cumsum()
+        #df_out = aux.group_into_montly_data(df_selected, index=True)
+        all_dates.to_excel("Output/Excel/all_date_cordoba.xlsx")
+        df_out.to_excel("Output/Excel/df_cordoba.xlsx")
+
+
+        return df_out
 
 def merge_meteo_data(list_df):
     df_temp = list_df[0]
