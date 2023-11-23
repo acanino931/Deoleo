@@ -76,8 +76,9 @@ def preprocess_prevision_data(df):
     average_prod_post_march = 1 - (average_prod_post_march / 100)
     df_prev = imd.load_and_transform_previsiones()
     # putting the penalty over the prevision for confronting the data of the production since the harvest post march is not considered
-    df_prev = df_prev.apply(lambda x: x * average_prod_post_march if 'Año' not in x.name else x)
-    df_prev = df_prev[['Año Inicio', 'Estimación España (Junta Andalucia)']]
+    df_prev['HARVEST_FORECAST_JUNTA_ANDALUCIA'] = df_prev['Estimación España (Junta Andalucia)'].copy()
+    df_prev = df_prev.apply(lambda x: x * average_prod_post_march if 'Año' not in x.name  and 'HARVEST_FORECAST_JUNTA_ANDALUCIA' not in x.name else x)
+    df_prev = df_prev[['Año Inicio', 'Estimación España (Junta Andalucia)','HARVEST_FORECAST_JUNTA_ANDALUCIA']]
     df_prev.set_index('Año Inicio', inplace=True)
     return df_prev
 

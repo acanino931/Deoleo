@@ -413,6 +413,10 @@ def load_data():
 
         df_month = pd.merge(df_month, prevision_df1, right_index=True, left_index=True, how='left')
         df_month['Estimación España (Junta Andalucia)'] = df_month['Estimación España (Junta Andalucia)'].shift(6)
+
+        df_inflaction = pd.read_excel("Datos/inflacion_mensual.xls", sheet_name="Sheet1")
+        df_inflaction.set_index('DATE', inplace=True)
+        df_month = df_month.merge(df_inflaction, left_index=True, right_index=True, how='left')
         #df_month.drop (columns =['HARVEST_YEAR'],inplace = True)
 
 

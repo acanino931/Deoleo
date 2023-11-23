@@ -84,7 +84,7 @@ def save_model_summary_to_file(df, iteration, file_path =f"Output/Document/Out_r
         with open(file_path, 'w') as file:
             file.write(model_summary)
 
-        print(f"Model summary for index {iteration} has been saved to {file_path}")
+        #print(f"Model summary for index {iteration} has been saved to {file_path}")
     except KeyError:
         print(f"Index {iteration} not found in the DataFrame.")
 
