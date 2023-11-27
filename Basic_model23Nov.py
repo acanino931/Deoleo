@@ -36,8 +36,6 @@ import main
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
 from sklearn.metrics import r2_score
-
-
 from sklearn.linear_model import Lasso
 from sklearn.metrics import r2_score
 import numpy as np
@@ -74,9 +72,10 @@ basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg','PRODUCTION_HARVEST']]
 #basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg']]
 
 #df_month_pdf.columns
-#df_andaluz = imd.include_meteo_variables()
+df_andaluz = imd.include_meteo_variables()
 
-df_month = imd.include_pdf_data(basic_model_df)
+df_month = imd.include_pdf_data(df_month)
+df_month
 df_month['Produccion Total_TOTAL MONDIAL WORLD_no_UE'] = df_month['Produccion Total_TOTAL MONDIAL WORLD'] - df_month['Produccion UE_TOTAL A + B']
 
 for col in df_month.columns:
@@ -98,6 +97,7 @@ df_month['Consumo Total_TOTAL A_no_EU'] = df_month['Consumo Total_TOTAL  A'] -df
 basic_model_df.columns
 
 
+basic_model_df.columns
 basic_model_df = df_month
 basic_model_df.drop('PRODUCTION_HARVEST',axis =1,inplace = True)
 basic_model_df.columns
@@ -313,7 +313,7 @@ for var in col_andaluz:
         print(model.summary())
 
 
-assa
+
 
 
 

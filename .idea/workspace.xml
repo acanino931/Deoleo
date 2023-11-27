@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="Meteo Var stats added">
-      <change afterPath="$PROJECT_DIR$/Basic_model23Nov.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Basic_model_24Nov.py" afterDir="false" />
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="var_pdf_selected">
+      <change afterPath="$PROJECT_DIR$/src/Feature_selection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Basic_Model_22Nov.py" beforeDir="false" afterPath="$PROJECT_DIR$/Basic_Model_22Nov.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Datos/Diccionario_Variables_02_10_2023.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Basic_model23Nov.py" beforeDir="false" afterPath="$PROJECT_DIR$/Basic_model23Nov.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/yearly_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/yearly_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/aux_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,20 +37,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/acanino/PycharmProjects/Deoleo/Test_montly_correlation.py&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/acanino/PycharmProjects/Deoleo/Basic_Model_22Nov.py",
+    "settings.editor.selected.configurable": "preferences.keymap"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;Python&quot;,
-      &quot;GitIgnore&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python",
+      "GitIgnore"
     ]
   }
-}</component>
+}]]></component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings>
@@ -65,7 +63,28 @@
       <recent name="C:\Users\acanino\PycharmProjects\Deoleo\src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Test_montly_correlation">
+  <component name="RunManager" selected="Python.Basic_Model_22Nov">
+    <configuration name="Basic_Model_22Nov" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Deoleo" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\acanino\PycharmProjects\Deoleo\venv\Scripts\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Basic_Model_22Nov.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="Test_montly_correlation" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Deoleo" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -108,27 +127,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="entrega" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Deoleo" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$APPLICATION_CONFIG_DIR$/scratches" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$APPLICATION_CONFIG_DIR$/scratches/entrega.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Deoleo" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -152,15 +150,15 @@
     </configuration>
     <list>
       <item itemvalue="Python.main" />
-      <item itemvalue="Python.entrega" />
+      <item itemvalue="Python.Basic_Model_22Nov" />
       <item itemvalue="Python.entrega (1)" />
       <item itemvalue="Python.Test_montly_correlation" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.Basic_Model_22Nov" />
         <item itemvalue="Python.Test_montly_correlation" />
         <item itemvalue="Python.entrega (1)" />
-        <item itemvalue="Python.entrega" />
       </list>
     </recent_temporary>
   </component>
@@ -355,7 +353,14 @@
       <option name="project" value="LOCAL" />
       <updated>1700581218990</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="var_pdf_selected">
+      <created>1700769025483</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1700769025483</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -401,7 +406,8 @@
     <MESSAGE value="backtesting tested regfunc module updated" />
     <MESSAGE value="yearly correlation with shifts added" />
     <MESSAGE value="Meteo Var stats added" />
-    <option name="LAST_COMMIT_MESSAGE" value="Meteo Var stats added" />
+    <MESSAGE value="var_pdf_selected" />
+    <option name="LAST_COMMIT_MESSAGE" value="var_pdf_selected" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -433,13 +439,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/Regression_Functions.py</url>
-          <line>238</line>
+          <line>182</line>
           <option name="timeStamp" value="31" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/Regression_Functions.py</url>
-          <line>461</line>
-          <option name="timeStamp" value="33" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Test_montly_correlation.py</url>
@@ -455,10 +456,27 @@
           <line>63</line>
           <option name="timeStamp" value="43" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/Lib/site-packages/pandas/io/common.py</url>
+          <line>865</line>
+          <option name="timeStamp" value="51" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Basic_Model_22Nov.py</url>
+          <line>239</line>
+          <option name="timeStamp" value="53" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/Feature_selection.py</url>
+          <line>8</line>
+          <option name="timeStamp" value="54" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
+        <watch expression="x" />
+        <watch expression="X.PRODUCTION_HARVEST_LAST_YEAR" />
         <watch expression="x" />
       </configuration>
     </watches-manager>

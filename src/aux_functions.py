@@ -189,3 +189,19 @@ def try_parse(string):
             result = None  # You can replace this with any default value or handle the case accordingly
 
     return result
+
+
+def remove_null_rows(df,target_variable = 'VIRGEN_EXTRA_EUR_kg'):
+    # this function eliminate all the rows with null values in the x and gives you back the X the y and the min date that the model is considering
+
+
+    ls_min = [df.index[df[col].notnull()].min() for col in df.columns ]
+    max_data_no_missing = max(list(set(ls_min)))
+    column_data_max = {}
+    for col in df.columns:
+        if df.index[df[col].notnull()].min() == max_data_no_missing:
+            column_data_max[col] = max_data_no_missing
+
+    x_data = df.loc[max_data_no_missing:, :].drop(columns= [target_variable])
+    y_data = df.loc[max_data_no_missing:, target_variable]
+    return (x_data,y_data,max_data_no_missing, column_data_max)

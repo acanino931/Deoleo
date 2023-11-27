@@ -148,9 +148,9 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
             doc.add_picture(buffer, width=Inches(5), height=Inches(3))
             doc.add_paragraph('')
 
-    doc.save('Output/Document/sample_with_pycharm_basic22Nov.docx')
+    doc.save('Output/Document/EXIST_24Nov.docx')
 
-mock = False
+mock = True
 if mock == False:
     try:
         # Code that might raise an exception
@@ -187,17 +187,61 @@ df_month = pdf
 
 df_month.columns
 basic_model_2010_necessary = ['VIRGEN_EXTRA_EUR_kg', 'PRODUCTION_HARVEST', 'TOTAL_CONS','PRODUCTION_HARVEST_LAST_YEAR', 'HARVEST_FORECAST_JUNTA_ANDALUCIA']
+basic_model_2010_necessary = [ 'PRODUCTION_HARVEST', 'TOTAL_CONS','PRODUCTION_HARVEST_LAST_YEAR', 'HARVEST_FORECAST_JUNTA_ANDALUCIA']
+
 
 col_energy =['VIRGEN_EXTRA_EUR_kg','Trade Close_EUA','Mid Price Close_BRENT', 'Trade Close_API2', 'Trade Close_TTF', 'Media POOL_OMEL', 'MONTHLY_INFLATION_PERC']
 
+
+
 col_energy_necessary =['Trade Close_EUA','Mid Price Close_BRENT']
+col_energy_necessary =['Trade Close_EUA']
 col_pdf_necessary = ['Consumo UE_TOTAL B)', 'Consumo UE_TOTAL  A)', 'Exportacion UE_TOTAL B)', 'Importacion UE_TOTAL B)']
 col_pdf_necessary = ['Consumo UE_TOTAL B)', 'Consumo UE_TOTAL  A)', 'Exportacion UE_TOTAL B)']
-
+col_pdf_necessary = ['Consumo UE_TOTAL B)']
 col_necessary = basic_model_2010_necessary + col_energy_necessary+ col_pdf_necessary
+
+col_necessary = basic_model_2010_necessary + col_energy_necessary
 col_necessary
 
 basic_model_df = df_month[col_necessary]
+
+from src import Feature_selection as fs
+df_month.drop ( columns = ['DATE.1'],inplace = True)
+basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+basic_model_df = basic_model_df.fillna(method='ffill').fillna(method="bfill")
+basic_model_df.info()
+
+df_month
+df_month = rf.eliminate_rows_from_date(df_month, '2010-07-01')
+df_month = df_month.fillna(method='ffill').fillna(method="bfill")
+df_month.info()
+
+#df_month.drop( 'DATE.1',inplace = True, axis = 1)
+
+df_month.columns
+
+
+col_necessary
+
+df_month
+
+col_necessary
+y= df_month[['VIRGEN_EXTRA_EUR_kg']]
+X = df_month[col_necessary]
+X = sm.add_constant(X)
+model = sm.OLS(y, X).fit()
+print(model.summary())
+print (len(col_necessary)-1,len(X.columns)-1)
+if (model.pvalues < 0.05).all(): #  and len(col_necessary) < len(X.columns)-1
+    print('ok')
+
+
+var_sig  = fs.semiautomatic_adding_feature (df_month , all_columns = list(df_month.columns) , model_columns =col_necessary )
+
+var_sig
+
+df_month
 
 basic_model_df.columns
 
@@ -374,7 +418,10 @@ basic_model_df = df_month[
     ['VIRGEN_EXTRA_EUR_kg', 'EXIS_INIC', 'IMPORTS', 'EXPORTS',  'PRODUCTION_HARVEST',
       'TOTAL_CONS', 'PRODUCTION_HARVEST_LAST_YEAR', 'PRODUCTION_HARVEST_2_YEARS',
      ]] #'PRODUCTION_HARVEST_REAL_EST','INTERNAL_DEMAND','PRODUCTION',
-#print_doc_descriptive_vars(basic_model_df, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
+
+df_EXIST = df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC']]
+
+print_doc_descriptive_vars(df_EXIST, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
 # END  # graficas Modelo basico Review
 
 # SECOND VERSION Modelo Basico
@@ -401,6 +448,8 @@ basic_model_df
 
 
 basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+
+basic_model_df
 
 df_month_copy = rf.eliminate_rows_from_date(df_month_copy, '2010-07-01')
 df_month_copy
@@ -524,3 +573,41 @@ print("Selected Features:", selected_features)
 print("Corresponding Coefficients:", selected_coefficients)
 print("P-values:", selected_p_values)
 print(f"R^2 on Training Set: {r2_train}")
+
+
+
+basic_model_df = df_month[col_necessary]
+
+# Granger :
+
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.stattools import grangercausalitytests
+import matplotlib.pyplot as plt
+
+basic_model_df.columns
+
+df_granger = basic_model_df[['VIRGEN_EXTRA_EUR_kg','TOTAL_CONS']]
+
+df_granger = basic_model_df[['TOTAL_CONS','VIRGEN_EXTRA_EUR_kg']]
+# Generate some example data
+basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+
+df_granger = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+# testing if total cons explains y
+# Create a DataFrame
+
+df_granger.info()
+
+# Plot the data
+df_granger.plot(title='Oil and Olive Oil Prices Over Time')
+plt.show()
+
+# Perform Granger causality test
+max_lag = 24  # you can adjust this based on your data
+test_result = grangercausalitytests(df_granger, max_lag, verbose=True)
+
+# Print the results
+for lag in range(1, max_lag + 1):
+    p_value = test_result[lag][0]['ssr_ftest'][1]
+    print(f'Granger causality test (lag={lag}): p-value = {p_value}')

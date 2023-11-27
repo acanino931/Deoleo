@@ -12,63 +12,7 @@ import itertools
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.stats.diagnostic import acorr_ljungbox
-
-
-def remove_null_rows(df,target_variable = 'VIRGEN_EXTRA_EUR_kg'):
-    # this function eliminate all the rows with null values in the x and gives you back the X the y and the min date that the model is considering
-
-
-    ls_min = [df.index[df[col].notnull()].min() for col in df.columns ]
-    max_data_no_missing = max(list(set(ls_min)))
-    column_data_max = {}
-    for col in df.columns:
-        if df.index[df[col].notnull()].min() == max_data_no_missing:
-            column_data_max[col] = max_data_no_missing
-
-    x_data = df.loc[max_data_no_missing:, :].drop(columns= [target_variable])
-    y_data = df.loc[max_data_no_missing:, target_variable]
-    x_data = sm.add_constant(x_data)
-    return (x_data,y_data,max_data_no_missing, column_data_max)
-
-
-
-def stepwise_eliminating(df, target_variable, iterations):
-    ls_to_del = []
-    data = []  # Initialize an empty list to collect dictionaries
-
-    for i in range(iterations):
-        df1 = aux.shuffle_columns(df)
-        df1 = df1.drop(columns=ls_to_del)
-        X, y, max_data_no_missing, column_data_max = remove_null_rows(df1, target_variable=target_variable)
-        # Fit the regression model
-        model = sm.OLS(y, X).fit()
-        p_values = model.pvalues
-
-        # Identify the greatest p value to eliminate the variable
-        p_value_max = model.pvalues.max()
-        selected_vars = list(X.columns)
-        newvar = [var for var, p_value in zip(selected_vars, p_values) if p_value == p_value_max]
-
-        actual_cols = [col for col in df.columns if col not in ls_to_del]
-        summary_text = model.summary().as_text()
-        info_rows = f"The 1st Date considered is: {max_data_no_missing} and the columns with more null values are: {column_data_max}"
-        summary_text = summary_text + "\n" + info_rows
-
-        new_row = {
-            "Iteration": i,
-            "Rsquared": model.rsquared,
-            "Variable_out": newvar[0],
-            "P-value": p_value_max,
-            "Actual_cols": actual_cols,
-            "Model_summary": summary_text
-        }
-        ls_to_del.append(newvar[0])
-        data.append(new_row)  # Append the new row to the list of dictionaries
-
-    # Create a DataFrame from the list of dictionaries
-    df_stepwise_eliminating = pd.DataFrame(data)
-
-    return df_stepwise_eliminating
+from src import Feature_selection as fs
 
 
 def save_model_summary_to_file(df, iteration, file_path =f"Output/Document/Out_reg_stepwise/regression_summary_basic_model_stepwise_original_2005_data.txt" ):
@@ -444,46 +388,7 @@ def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  init
 
 
 
-def stepwise_regression_OLD(X, y, n_vars: int = 4):
-    '''
-    It performs the step wise method for the variables entered in the dataframe X. It is delimited with the parameter n_vars.
-    The step-wise method in regression is a systematic approach to select the most relevant variables and build an optimal regression mode.
-    If no variables are found relevant, it defaults to the Pool Avg variable
-    Input:
-        X: Dataframe. Dataframe with all coluns to performa the Step Wise regression
-        y: Array. Array constaining the objective variable values
-        n_cols: Integer. The maximum number of columns to select
 
-    Output: List.
-        It outputs a list containing the name of the relevant columns found with 2 particular rules applied:
-            When no column is found significant, it defaults to the Pool Avg column
-            When more than n_vars variables are found, it takes only the n_vars more relevant columns
-    '''
-    included = list(X.columns)
-    while True:
-        if 'const' in included:
-            model = sm.OLS(y, (X[included])).fit()
-        else:
-            model = sm.OLS(y, sm.add_constant(X[included])).fit()
-        #print(model.summary())
-
-        max_pval = model.pvalues[1:].max()  # Excluye el p-valor del intercepto
-
-        if max_pval > 0.05:
-            excluded_feature = model.pvalues[1:].idxmax()
-            included.remove(excluded_feature)
-        else:
-            pvals = model.pvalues[1:].sort_values(ascending=False)
-            break
-    if len(included) == 0:
-        included = ['EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS']
-    elif len(included) > (n_vars):
-        vars_to_rmv = len(included) - n_vars
-        included = list(pvals.index[vars_to_rmv:])
-    else:
-        pass
-
-    return included
 
 
 def regression_OLD_original(dataframe: pd.DataFrame(), variables: list, y_var: str, df_test=None, reg_type: str = 'Linear',
@@ -561,7 +466,7 @@ def regression_OLD_original(dataframe: pd.DataFrame(), variables: list, y_var: s
 
         if significativas:  # Apply Step Wise Regression
 
-            variables_comb = stepwise_regression_OLD(x, y, n_vars)
+            variables_comb = fs.stepwise_regression_OLD(x, y, n_vars)
 
             x = x[variables_comb]
             x_test = x_test[variables_comb]
@@ -736,7 +641,7 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
 
         if significativas:  # Apply Step Wise Regression
 
-            variables_comb = stepwise_regression_OLD(x, y, n_vars)
+            variables_comb = fs.stepwise_regression_OLD(x, y, n_vars)
 
             x = x[variables_comb].copy()
             x_test = x_test[variables_comb]
