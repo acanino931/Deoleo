@@ -16,6 +16,7 @@ import seaborn as sns
 
 
 def order_by_correlation_size(df,target_variable ='VIRGEN_EXTRA_EUR_kg'):
+    # order a df from based on the correlation with the target variable in a decreasing order.
 
     correlation_matrix = df.corr()
     max_correlation_with_target = correlation_matrix[target_variable].drop([target_variable]).abs().sort_values(ascending=False)
@@ -24,7 +25,12 @@ def order_by_correlation_size(df,target_variable ='VIRGEN_EXTRA_EUR_kg'):
     return df
 
 def scatterplot_for_years(df, col, target_variable):
-    # Create a figure and axes for each variable, making it one-third smaller
+    # Create a figure a scatterplot and add a regression line, and return it as an immage buffer ready to be saved in a document.
+    # If you just need to plot the image replace the image buffer code with plt.show()
+    # All the years has a different colours.
+    # IMPORTANT: the function consider the 1st not null value for the X and from there it fill it,
+    # that could lead to distorsions most of all for the initial period
+
     fig, ax = plt.subplots(figsize=(7, 4))
 
     # Extract unique 'YEAR' values
@@ -42,7 +48,7 @@ def scatterplot_for_years(df, col, target_variable):
 
     # first not null value
     x_data = df.loc[df.index[df[col].notnull()].min():]
-    x_data = x_data[col].fillna(method='ffill').fillna(method='bfill')
+    x_data = x_data[col].fillna(method='ffill').fillna(method='bfill') ## TODO testing deleting the bfill part to avoid distortion ## END TODO
     df.loc[x_data.index[0 :],target_variable]
 
     y_data = df.loc[x_data.index[0 :],target_variable]
@@ -54,7 +60,7 @@ def scatterplot_for_years(df, col, target_variable):
     scatter = ax.scatter(x_data, y_data, c=year_values, cmap=custom_cmap, norm=norm)
 
     # Fit the linear regression model
-    x_data_filled = x_data.fillna(method='ffill').fillna(method='bfill')
+    x_data_filled = x_data.fillna(method='ffill').fillna(method='bfill') ## TODO testing deleting the bfill part to avoid distortion ## END TODO
     X = sm.add_constant(x_data_filled)
     model = sm.OLS(y_data, X).fit()
 
@@ -95,7 +101,13 @@ def scatterplot_for_years(df, col, target_variable):
 
 
 def scatterplot_for_years_yearly_var(df1, col, target_variable):
-    # in case there is a var like PRODUCTION IT SHOW A SCATTERPLOT WITH JUST THE MEAN VALUE OF THE YEAR
+    # in case there is a var like PRODUCTION IT SHOW A SCATTERPLOT WITH JUST THE MEAN VALUE OF THE  HARVEST YEAR
+    # the harvest year is the variable used to aggregate the mountly production of olive oil, it's inside the main dataframe
+    # Create a figure a scatterplot and add a regression line, and return it as an immage buffer ready to be saved in a document.
+    # If you just need to plot the image replace the immage buffer code with plt.show()
+    # All the years has a different colours.
+    # IMPORTANT: the function consider the 1st not null value for the X and from there it fill it,
+    # that could lead to distorsions most of all for the initial period
     df = df1.copy()
     if  'PRODUCTION_HARVEST' in col:
 
@@ -180,7 +192,8 @@ def scatterplot_for_years_yearly_var(df1, col, target_variable):
 
 
 def plot_and_save_variables(df, y1_var_name, y2_var_name, temp='Monthly'):
-    # Obtener los valores de las variables
+    # OLD function that shows the graph of the two timeseries variables
+    # now it has been configured to return an image buffer ready to be printed inside of a document
     x = df.index
     y1 = df[y1_var_name]
     y2 = df[y2_var_name]
@@ -221,11 +234,17 @@ def plot_and_save_variables(df, y1_var_name, y2_var_name, temp='Monthly'):
 
 
 def rolling_corr(variable1, variable2, ventana):
+    #OLD FUNCTION
+    # calculate the rolling correlation used to calculate the correlations over time
     roll_corr = variable1.rolling(window=ventana).corr(variable2)
     return roll_corr
 
 
 def rolling_corr_post(variable1, variable2, ventana):
+    #OLD FUNCTION
+    # calculate the rolling correlation used to calculate the correlations shifting the correlation values
+    # backward, with the window size.
+    # CURRENTLY NOT USED.
     roll_corr = variable1.rolling(window=ventana).corr(variable2)
     roll_corr_posterior = roll_corr.shift(-ventana)
     return roll_corr_posterior
@@ -234,7 +253,7 @@ def rolling_corr_post(variable1, variable2, ventana):
 def print_correlation_over_time(df, col, target_variable):
 
     # this function show how the rolling correlation between the 2 variable analyzed in the same moment has
-    # changed over time
+    # changed over time and return an image buffer.
     for variable_explicativa in [col]:
         if col != target_variable and col != 'YEAR':
             variable_objetivo = target_variable
@@ -249,7 +268,8 @@ def print_correlation_over_time(df, col, target_variable):
 
 
 def cross_correlation_variable(df, col, target_col, nlags):
-    # using fill method starting from the 1st not null value for every column
+    # PYTHON FUNCTION NOT VALIDATED for calculate the cross correlation between variables.
+    # WARING IT GETS YOU VALUES YOU ARE NOT EXPCETING USE custom_ccf() instead
     # this function show the correlations between t variables in different time lags, using the cross correlation function
     df = df.loc[df.index[df[col].notnull()].min():]
     #line commented, leave like this if no errors occur
@@ -288,6 +308,8 @@ def cross_correlation_variable(df, col, target_col, nlags):
     return image_buffer
 
 def cross_correlation_variable_out_df(df, col, target_col, nlags):
+    # PYTHON FUNCTION NOT VALIDATED for calculate the cross correlation between variables.
+    # WARING IT GETS YOU VALUES YOU ARE NOT EXPCETING USE custom_ccf() instead
     # using fill method starting from the 1st not null value for every column
     # this function show the correlations between t variables in different time lags, using the cross correlation function
     df = df.loc[df.index[df[col].notnull()].min():]
@@ -308,7 +330,9 @@ def cross_correlation_variable_out_df(df, col, target_col, nlags):
 
 
 def custom_ccf(df,col, target_variable, nlags):
-    # THE CCF USED HERE STARTS FROM LAG 1  THE CORRELATION AT THE SAME MOMENT IS NOT TAKEN
+    # Compute the cross correlation, and store it in an image buffer.
+    # IMPORTANT : THE CCF USED HERE STARTS FROM LAG 1  THE CORRELATION AT THE SAME MOMENT IS NOT TAKEN
+    # if you want to show the 1st lag replace the value of the range that defines the loop to 0, changed to be tested! #TODO TEST TO ADJUST THE 0 VALUE LAG# #END TODO
     # Create a copy of the dataframe to avoid modifying the original
     df_copy = df.copy()
 
@@ -356,6 +380,7 @@ def custom_ccf(df,col, target_variable, nlags):
 
 
 def compute_lags_for_custom_ccf_IMC(df,nlags, col_to_lag = 'VIRGEN_EXTRA_EUR_kg',target_variable= 'IMC_EXTRA_VIRGEN_EUR_kg'):
+    # return a df with the correlations with the lags of the X variabes
     df1 = df[[target_variable,col_to_lag]]
 
     for lag in range (1,nlags+1):

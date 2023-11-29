@@ -41,6 +41,7 @@ from sklearn.metrics import r2_score
 from sklearn.linear_model import Lasso
 from sklearn.metrics import r2_score
 import numpy as np
+from src import Feature_selection as fs
 
 
 def lasso_feature_selection(X, y, n_vars=9, alpha=1.0):
@@ -150,7 +151,7 @@ def print_doc_descriptive_vars(df1,target_var ='VIRGEN_EXTRA_EUR_kg',lag_cross_c
 
     doc.save('Output/Document/EXIST_24Nov.docx')
 
-mock = True
+mock = False
 if mock == False:
     try:
         # Code that might raise an exception
@@ -174,11 +175,35 @@ if 'DATE' in df_month_trans.columns:
 df_month = df_month_trans.copy()
 df_month['IMPORTS_LAG_9'] = df_month['IMPORTS'].shift(9)
 df_month['EXPORTS_LAG_12'] = df_month['EXPORTS'].shift(12)
-df_month.columns
+df_month
+
+
+df_exist = pd.read_excel("Datos/Existencias/Existencias_To_import.xlsx", sheet_name="Agosto")
+#df_exist = pd.read_excel("Datos/Existencias/Existencias_To_import.xlsx", sheet_name="Agosto")
+
+df_exist.set_index("DATE",inplace = True)
+
+df_exist.columns
+ls_exist = list(df_exist.columns)
+
+df_month1= pd.merge(df_month, df_exist , right_index= True , left_index= True , how = "left" )
+
+ls_exist.append('VIRGEN_EXTRA_EUR_kg')
+ls_exist
+df_selection = df_month1[ls_exist].copy()
+df_selection = rf.eliminate_rows_from_date(df_selection, '2010-07-01')
+
+df_res1 = fs.semimanual_single_regressions(df_selection ,  all_columns =ls_exist ,target_var = 'VIRGEN_EXTRA_EUR_kg')
+
+df_res1
+
+
 
 pdf = imd.include_pdf_data(df_month)
 df_month = pdf
 
+
+df_month.columns
 #df_inflaction = pd.read_excel("Datos/inflacion_mensual.xls",sheet_name="Sheet1")
 #df_inflaction.set_index('DATE',inplace = True)
 #df_month = df_month.merge(df_inflaction, left_index=True, right_index=True, how='left')
@@ -187,7 +212,7 @@ df_month = pdf
 
 df_month.columns
 basic_model_2010_necessary = ['VIRGEN_EXTRA_EUR_kg', 'PRODUCTION_HARVEST', 'TOTAL_CONS','PRODUCTION_HARVEST_LAST_YEAR', 'HARVEST_FORECAST_JUNTA_ANDALUCIA']
-basic_model_2010_necessary = [ 'PRODUCTION_HARVEST', 'TOTAL_CONS','PRODUCTION_HARVEST_LAST_YEAR', 'HARVEST_FORECAST_JUNTA_ANDALUCIA']
+#basic_model_2010_necessary = [ 'PRODUCTION_HARVEST', 'TOTAL_CONS','PRODUCTION_HARVEST_LAST_YEAR', 'HARVEST_FORECAST_JUNTA_ANDALUCIA']
 
 
 col_energy =['VIRGEN_EXTRA_EUR_kg','Trade Close_EUA','Mid Price Close_BRENT', 'Trade Close_API2', 'Trade Close_TTF', 'Media POOL_OMEL', 'MONTHLY_INFLATION_PERC']
@@ -195,27 +220,20 @@ col_energy =['VIRGEN_EXTRA_EUR_kg','Trade Close_EUA','Mid Price Close_BRENT', 'T
 
 
 col_energy_necessary =['Trade Close_EUA','Mid Price Close_BRENT']
-col_energy_necessary =['Trade Close_EUA']
-col_pdf_necessary = ['Consumo UE_TOTAL B)', 'Consumo UE_TOTAL  A)', 'Exportacion UE_TOTAL B)', 'Importacion UE_TOTAL B)']
-col_pdf_necessary = ['Consumo UE_TOTAL B)', 'Consumo UE_TOTAL  A)', 'Exportacion UE_TOTAL B)']
-col_pdf_necessary = ['Consumo UE_TOTAL B)']
+
+col_pdf_necessary = ['Consumo UE_TOTAL B)', 'Consumo UE_TOTAL  A)', 'Exportacion UE_TOTAL B)']# , 'Importacion UE_TOTAL B)
+col_pdf_necessary = ['Consumo UE_TOTAL B)', 'Consumo UE_TOTAL  A)' ,'Consumo Total_TOTAL MONDIAL WORLD_LAG_12','Exportacion UE_TOTAL B)', 'Produccion UE_TOTAL  A)'] #  ,
 col_necessary = basic_model_2010_necessary + col_energy_necessary+ col_pdf_necessary
 
 col_necessary = basic_model_2010_necessary + col_energy_necessary
 col_necessary
 
 basic_model_df = df_month[col_necessary]
-
-from src import Feature_selection as fs
-df_month.drop ( columns = ['DATE.1'],inplace = True)
 basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
-basic_model_df = basic_model_df.fillna(method='ffill').fillna(method="bfill")
-basic_model_df.info()
 
-df_month
-df_month = rf.eliminate_rows_from_date(df_month, '2010-07-01')
-df_month = df_month.fillna(method='ffill').fillna(method="bfill")
-df_month.info()
+basic_model_df = rf.eliminate_rows_after_date(basic_model_df, '2022-09-01')
+
+basic_model_df.columns
 
 #df_month.drop( 'DATE.1',inplace = True, axis = 1)
 
@@ -224,22 +242,70 @@ df_month.columns
 
 col_necessary
 
-df_month
 
 col_necessary
-y= df_month[['VIRGEN_EXTRA_EUR_kg']]
-X = df_month[col_necessary]
+y= basic_model_df[['VIRGEN_EXTRA_EUR_kg']]
+X = basic_model_df[col_necessary]
+if 'VIRGEN_EXTRA_EUR_kg' in X.columns:
+    X.drop(columns =['VIRGEN_EXTRA_EUR_kg'],inplace = True)
 X = sm.add_constant(X)
 model = sm.OLS(y, X).fit()
 print(model.summary())
+
+
+basic_model_df.columns
+
+df_result = rf.back_testing_regression_rolling_OLD(basic_model_df, basic_model_df.drop(columns=['VIRGEN_EXTRA_EUR_kg']),
+                                        'VIRGEN_EXTRA_EUR_kg', signif=False, initial_date='2019-05-01', window = 40,
+                                        final_date='2023-09-01')
+
+df_result = rf.back_testing_regression_expanding_OLD(basic_model_df, basic_model_df.drop(columns=['VIRGEN_EXTRA_EUR_kg']),
+                                        'VIRGEN_EXTRA_EUR_kg', signif=False, initial_date='2019-05-01', window = 40,
+                                        final_date='2023-09-01')
+df_result.Mape_final.mean()
+
+
+df_result.to_excel("Output/Excel/backtesting_rolling_40_basic_validated_Included_year.xlsx")
+
+df_result.to_excel("Output/Excel/backtesting_expanding_40_basic_validated_Included_year.xlsx")
+
+
 print (len(col_necessary)-1,len(X.columns)-1)
 if (model.pvalues < 0.05).all(): #  and len(col_necessary) < len(X.columns)-1
     print('ok')
+df_month1 = df_month[var_pdf]
 
+df_month1 = df_month[col_necessary]
+df_month1 = rf.eliminate_rows_from_date(df_month1, '2010-07-01')
+basic_model_df.columns
+basic_model_df.drop(columns = ['Consumo UE_TOTAL B)',
+       'Consumo UE_TOTAL  A)', 'Exportacion UE_TOTAL B)_LAG_12'], inplace = True)
+var_pdf
+col_necessary
 
-var_sig  = fs.semiautomatic_adding_feature (df_month , all_columns = list(df_month.columns) , model_columns =col_necessary )
+basic_model_df = df_month[col_necessary + var_pdf]
+basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+for i in col_necessary :
+    if i not in df_month.columns:
+        print(i)
+
+basic_model_df.columns
+basic_model_df.to_excel("Output/Excel/df_model_piu_pdf.xlsx")
+
+df_month2 = pd.merge (basic_model_df,df_month1, left_index=True, right_index=True, how = "left")
+df_month2
+col_necessary
+var_sig  = fs.semiautomatic_adding_feature (basic_model_df , all_columns = list(basic_model_df.columns) , model_columns =col_necessary )
+
 
 var_sig
+
+
+len(var_sig)
+
+var_sig
+var_sig2
+var_sig2 = var_sig
 
 df_month
 
@@ -421,7 +487,7 @@ basic_model_df = df_month[
 
 df_EXIST = df_month[['VIRGEN_EXTRA_EUR_kg','EXIS_INIC']]
 
-print_doc_descriptive_vars(df_EXIST, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
+print_doc_descriptive_vars(basic_model_df, target_var='VIRGEN_EXTRA_EUR_kg', lag_cross_corr=24)
 # END  # graficas Modelo basico Review
 
 # SECOND VERSION Modelo Basico
@@ -448,6 +514,8 @@ basic_model_df
 
 
 basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+
+basic_model_df
 
 basic_model_df
 
@@ -541,8 +609,13 @@ X.columns
 
 basic_model_df.columns
 
+col_necessary
+basic_model_df = basic_model_df[col_necessary]
+
+basic_model_df
+
 basic_model_df.columns
-ls_ventanas = [24, 30, 36, 40, 50]
+ls_ventanas = [12,24, 30, 36, 48, 50, 60 ]
 for window in ls_ventanas:
     result_rolling = rf.rolling_regression(basic_model_df, 'VIRGEN_EXTRA_EUR_kg', window)
     result_rolling = aux.add_average_row(result_rolling)
@@ -587,13 +660,20 @@ import matplotlib.pyplot as plt
 
 basic_model_df.columns
 
-df_granger = basic_model_df[['VIRGEN_EXTRA_EUR_kg','TOTAL_CONS']]
-
 df_granger = basic_model_df[['TOTAL_CONS','VIRGEN_EXTRA_EUR_kg']]
-# Generate some example data
-basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
 
-df_granger = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+df_granger = df_month[['EXPORTS','VIRGEN_EXTRA_EUR_kg']]
+
+df_granger = df_month[['EXPORTS','VIRGEN_EXTRA_EUR_kg']]
+
+df_granger = df_month[['VIRGEN_EXTRA_EUR_kg','INNER_CONS']]
+
+df_reverse_granger = basic_model_df[['TOTAL_CONS','VIRGEN_EXTRA_EUR_kg']]
+# Generate some example data
+df_granger = rf.eliminate_rows_from_date(df_granger, '2010-07-01')
+df_reverse_granger = rf.eliminate_rows_from_date(df_reverse_granger, '2010-07-01')
+
+
 # testing if total cons explains y
 # Create a DataFrame
 
@@ -604,10 +684,21 @@ df_granger.plot(title='Oil and Olive Oil Prices Over Time')
 plt.show()
 
 # Perform Granger causality test
-max_lag = 24  # you can adjust this based on your data
+max_lag = 13  # you can adjust this based on your data
 test_result = grangercausalitytests(df_granger, max_lag, verbose=True)
+
+test_result
 
 # Print the results
 for lag in range(1, max_lag + 1):
     p_value = test_result[lag][0]['ssr_ftest'][1]
+    print(f'Granger causality test (lag={lag}): p-value = {p_value}')
+
+
+# reverse
+test_result_reverse = grangercausalitytests(df_reverse_granger, max_lag, verbose=True)
+
+# Print the results
+for lag in range(1, max_lag + 1):
+    p_value = test_result_reverse[lag][0]['ssr_ftest'][1]
     print(f'Granger causality test (lag={lag}): p-value = {p_value}')

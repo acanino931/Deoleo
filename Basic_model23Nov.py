@@ -39,7 +39,7 @@ from sklearn.metrics import r2_score
 from sklearn.linear_model import Lasso
 from sklearn.metrics import r2_score
 import numpy as np
-
+from src import Feature_selection as fs
 
 mock = False
 if mock == False:
@@ -68,20 +68,27 @@ df_month['EXPORTS_LAG_12'] = df_month['EXPORTS'].shift(12)
 df_month.columns
 
 
+
+
 basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg','PRODUCTION_HARVEST']]
 #basic_model_df = df_month[['VIRGEN_EXTRA_EUR_kg']]
 
 #df_month_pdf.columns
-df_andaluz = imd.include_meteo_variables()
+#df_andaluz = imd.include_meteo_variables()
 
 df_month = imd.include_pdf_data(df_month)
+
 df_month
 df_month['Produccion Total_TOTAL MONDIAL WORLD_no_UE'] = df_month['Produccion Total_TOTAL MONDIAL WORLD'] - df_month['Produccion UE_TOTAL A + B']
+
+
+
 
 for col in df_month.columns:
     if 'Produccion' in col:
         df_month[col] = df_month[col].shift(5)
 
+df_month['Produccion Total_TOTAL MONDIAL WORLD_no_UE'] = df_month['Produccion Total_TOTAL MONDIAL WORLD'] - df_month['Produccion UE_TOTAL A + B']
 df_month['Produccion UE_TOTAL A + B'] = df_month['Produccion UE_TOTAL A + B'] * 0.93
 df_month['Produccion UE_TOTAL A + B'] = df_month['Produccion UE_TOTAL A + B'] - df_month['PRODUCTION_HARVEST']
 df_month['Produccion Total_TOTAL  A'] = df_month['Produccion Total_TOTAL  A'] * 0.93
@@ -89,12 +96,29 @@ df_month['Produccion Total_TOTAL  A'] = df_month['Produccion Total_TOTAL  A'] - 
 df_month['Produccion UE_TOTAL  A)'] = df_month['Produccion UE_TOTAL  A)'] * 0.93
 df_month['Produccion UE_TOTAL  A)'] = df_month['Produccion UE_TOTAL  A)'] - df_month['PRODUCTION_HARVEST']
 df_month['Produccion Total_TOTAL MONDIAL WORLD'] = df_month['Produccion Total_TOTAL MONDIAL WORLD'] * 0.93
-df_month['Produccion Total_TOTAL MONDIAL WORLD'] = df_month['Produccion Total_TOTAL MONDIAL WORLD'] - df_month['PRODUCTION_HARVEST']
+df_month['Produccion Total_TOTAL MONDIAL WORLD'] = df_month['Produccion Total_TOTAL MONDIAL WORLD'] - df_month ['PRODUCTION_HARVEST']
 df_month['Produccion Total_TOTAL B'] = df_month['Produccion Total_TOTAL B'] * 0.93
-df_month['Consumo Total_TOTAL A_no_EU'] = df_month['Consumo Total_TOTAL  A'] -df_month['Consumo UE_TOTAL A + B']
+df_month['Consumo Total_TOTAL A_no_EU'] = df_month['Consumo Total_TOTAL  A'] - df_month['Consumo UE_TOTAL A + B']
+
+
+# INSERTING LAGS:
+
+df_month['Consumo Total_TOTAL B_LAG_12'] = df_month['Consumo Total_TOTAL B'].shift(12)
+df_month['Importacion Total_TOTAL  B_LAG_12'] = df_month['Importacion Total_TOTAL  B'].shift(12)
+df_month['Exportacion Total_TOTAL MONDIAL WORLD_LAG_12'] = df_month['Exportacion Total_TOTAL MONDIAL WORLD'].shift(12)
+df_month['Exportacion Total_TOTAL A_LAG_12'] = df_month['Exportacion Total_TOTAL A'].shift(12)
+df_month['Exportacion UE_TOTAL  A)_LAG_12'] = df_month['Exportacion UE_TOTAL  A)'].shift(12)
+df_month['Exportacion UE_TOTAL A + B_LAG_12'] = df_month['Exportacion UE_TOTAL A + B'].shift(12)
+df_month['Exportacion UE_TOTAL B)_LAG_12'] = df_month['Exportacion UE_TOTAL B)'].shift(12)
+df_month['Consumo Total_TOTAL MONDIAL WORLD_LAG_12'] = df_month['Consumo Total_TOTAL MONDIAL WORLD'].shift(12)
+
+
+
+df_month.columns
 
 
 basic_model_df.columns
+
 
 
 basic_model_df.columns
@@ -113,9 +137,40 @@ var_pdf = ['Consumo Total_TOTAL  A',
        'Importacion UE_TOTAL B)', 'Importacion UE_TOTAL A + B',
        'Produccion Total_TOTAL  A', 'Produccion Total_TOTAL B',
        'Produccion Total_TOTAL MONDIAL WORLD', 'Produccion UE_TOTAL  A)' ,'Produccion UE_TOTAL A + B',
-        'Produccion Total_TOTAL MONDIAL WORLD_no_UE','Consumo Total_TOTAL A_no_EU']
+        'Produccion Total_TOTAL MONDIAL WORLD_no_UE','Consumo Total_TOTAL A_no_EU'
+           ]
 
 
+
+var_pdf = ['Consumo Total_TOTAL  A',
+       'Consumo Total_TOTAL B', 'Consumo Total_TOTAL MONDIAL WORLD',
+       'Consumo UE_TOTAL  A)', 'Consumo UE_TOTAL B)', 'Consumo UE_TOTAL A + B',
+       'Exportacion Total_TOTAL A','Exportacion Total_TOTAL B',
+       'Exportacion Total_TOTAL MONDIAL WORLD', 'Exportacion UE_TOTAL  A)',
+       'Exportacion UE_TOTAL B)', 'Exportacion UE_TOTAL A + B',
+       'Importacion Total_TOTAL  A', 'Importacion Total_TOTAL  B',
+       'Importacion Total_TOTAL MONDIAL WORLD', 'Importacion UE_TOTAL  A)',
+       'Importacion UE_TOTAL B)', 'Importacion UE_TOTAL A + B',
+       'Produccion Total_TOTAL  A', 'Produccion Total_TOTAL B',
+       'Produccion Total_TOTAL MONDIAL WORLD', 'Produccion UE_TOTAL  A)' ,'Produccion UE_TOTAL A + B',
+        'Produccion Total_TOTAL MONDIAL WORLD_no_UE','Consumo Total_TOTAL A_no_EU',
+        'Consumo Total_TOTAL B_LAG_12',
+       'Importacion Total_TOTAL  B_LAG_12',
+       'Exportacion Total_TOTAL MONDIAL WORLD_LAG_12',
+       'Exportacion Total_TOTAL A_LAG_12', 'Exportacion UE_TOTAL  A)_LAG_12',
+       'Exportacion UE_TOTAL A + B_LAG_12',
+        'Exportacion UE_TOTAL B)_LAG_12',
+        'Consumo Total_TOTAL MONDIAL WORLD_LAG_12'
+           ]
+
+
+
+basic_model_df = df_month[var_pdf]
+basic_model_df = rf.eliminate_rows_from_date(basic_model_df, '2010-07-01')
+
+basic_model_df.columns
+res_df = fs.semimanual_single_regressions(basic_model_df,  list(basic_model_df.columns) )
+res_df
 
 ls_target =['VIRGEN_EXTRA_EUR_kg']
 var_pdf_good = ['Consumo Total_TOTAL B', 'Consumo Total_TOTAL MONDIAL WORLD',

@@ -16,6 +16,7 @@ from src import Feature_selection as fs
 
 
 def save_model_summary_to_file(df, iteration, file_path =f"Output/Document/Out_reg_stepwise/regression_summary_basic_model_stepwise_original_2005_data.txt" ):
+    # used for stepwise eliminating in order to create a txt with the output of the selected model
     try:
         df1 = df.copy()
         file_path = f"Output/Document/Out_reg_stepwise/regression_summary_basic_model_stepwise_{iteration}_original_2005_data.txt"
@@ -264,7 +265,7 @@ def back_testing_regression_expanding_OLD(df: pd.DataFrame(), x_cols, y_var, ini
 
 def back_testing_regression_rolling_OLD(df: pd.DataFrame(), x_cols, y_var,  initial_date: str = '2021-11-01',
                              final_date: str = '2023-09-01', signif: bool = False,
-                             reg_type='OLS', num_variables: int = 4, window: int = 48, step_ahead: int = 12):
+                             reg_type='OLS', num_variables: int = 4, window: int = 36, step_ahead: int = 12):
     """
     THIS FUNCTION IS USING REAL DATA FOR THE EVALUATION, NO PREDICTIONS OF REGRESSORS ARE MADE
     Rolling window hedging. It evaluates the hedging for the selected parameters, it outputs the cash flow for the selected period
@@ -668,7 +669,7 @@ def regression_OLD_OLS(dataframe: pd.DataFrame(), variables: list, y_var: str, d
             coeficientes = result.params
             #            intercept = model.intercept_
             y_pred = result.predict(x_test)
-            y_pred_in_sample = result.predict(x_test_in_sample)
+            #y_pred_in_sample = result.predict(x_test_in_sample)
             r2 = result.rsquared  # get the r2 in-sample
 
         # Get the formula
@@ -797,7 +798,6 @@ def eliminate_multicollinearity(df, target_var, num_iterations=10, correlation_t
 # function that gets you the intercept for thesting
 def rolling_regression_coefficient(df, target_variable, window_size):
     # calculate the regression for a rolling windows, TO be tested:
-    #todo consider significativity and stepwise inside the rolling
     results = []
     n = len(df)
     df['DATE'] = df.index
@@ -850,7 +850,6 @@ def rolling_regression_coefficient(df, target_variable, window_size):
 
 def rolling_regression(df, target_variable, window_size):
     # calculate the regression for a rolling windows, TO be tested:
-    #todo consider significativity and stepwise inside the rolling
     results = []
     n = len(df)
     df['DATE'] = df.index

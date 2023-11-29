@@ -597,8 +597,7 @@ def initialize_df_month(start_date,end_date):
 
 
 def import_pdf_data (path_folder_pdf =  "Datos/PDF/Juan_Vilar/" , start_date = '2001-01-01', end_date = '2023-09-01',just_total = True):
-
-    path_folder_pdf = "Datos/PDF/Juan_Vilar/"
+    # if you want to select the specific values of countries set just_total param to False
     df_pdf_tot = initialize_df_month(start_date,end_date)
 
     ls_file_pdf = [file for file in os.listdir(path_folder_pdf) if "Informe" not in file]
@@ -633,7 +632,7 @@ def include_meteo_variables(start_date='2001-01-01', end_date='2023-09-01'): # a
         #df_jaen = import_meteo_single_province("Datos/Datos_Jaen", "Jaen")
         df_meteo = df_meteo.merge(df_province, left_index=True, right_index=True, how='left')
 
-    print("tutto ok")
+    print("no exeptions occured for all the province data")
     unique_vars = set(col.rsplit('_', 1)[0] for col in df_meteo.columns)
 
     # Create a third DataFrame with mean values for each group of similar variables
@@ -700,7 +699,7 @@ def import_meteo_single_province(path_folder, province_name, start_date='2001-01
         dummy_hot  = [col for col in all_dates.columns if 'days_above_33_Average' in col][0]
         dummy_precip = [col for col in all_dates.columns if 'Precip_Average' in col][0]
         ndays_rain = "ndays_" +dummy_precip
-        all_dates[dummy_hot] = np.where(all_dates[dummy_hot] > 0.125, 1, 0)
+        all_dates[dummy_hot] = np.where(all_dates[dummy_hot] > 0.125, 1, 0) # in the current data used (27/11/2023) this percentage it' s equal to 4 stations
         all_dates[ndays_rain] = np.where(all_dates[dummy_precip] > 0.125, 1, 0)
         cumulated_rain = "cumulated_month_" +dummy_precip
         all_dates[cumulated_rain] = all_dates[dummy_precip]
@@ -730,4 +729,38 @@ def merge_meteo_data(list_df):
     return df_out
 
 
+def pdf_data_operations_post_merge(df1):
+    # this function adjust the production data and subtracts some spanish production data from the total
+    # in order not to consider twice the same data
+    # those operations have not been implemented with all the export variable
+    # the 0.93 is the penalty coefficient to the production because we are considering the harvest just until the beginning of march
+    # and the spanish production on average produce 93% of the seasonal oil at the beginning of March
+    df = include_pdf_data(df1)
+    for col in df.columns:
+        if 'Produccion' in col:
+            df[col] = df[col].shift(5)
+
+    df['Produccion Total_TOTAL MONDIAL WORLD_no_UE'] = df['Produccion Total_TOTAL MONDIAL WORLD'] - df[
+        'Produccion UE_TOTAL A + B']
+    df['Produccion UE_TOTAL A + B'] = df['Produccion UE_TOTAL A + B'] * 0.93
+    df['Produccion UE_TOTAL A + B'] = df['Produccion UE_TOTAL A + B'] - df['PRODUCTION_HARVEST']
+    df['Produccion Total_TOTAL  A'] = df['Produccion Total_TOTAL  A'] * 0.93
+    df['Produccion Total_TOTAL  A'] = df['Produccion Total_TOTAL  A'] - df['PRODUCTION_HARVEST']
+    df['Produccion UE_TOTAL  A)'] = df['Produccion UE_TOTAL  A)'] * 0.93
+    df['Produccion UE_TOTAL  A)'] = df['Produccion UE_TOTAL  A)'] - df['PRODUCTION_HARVEST']
+    df['Produccion Total_TOTAL MONDIAL WORLD'] = df['Produccion Total_TOTAL MONDIAL WORLD'] * 0.93
+    df['Produccion Total_TOTAL MONDIAL WORLD'] = df['Produccion Total_TOTAL MONDIAL WORLD'] - df['PRODUCTION_HARVEST']
+    df['Produccion Total_TOTAL B'] = df['Produccion Total_TOTAL B'] * 0.93
+    df['Consumo Total_TOTAL A_no_EU'] = df['Consumo Total_TOTAL  A'] - df['Consumo UE_TOTAL A + B']
+
+    # INSERTING LAGS:
+
+    df['Consumo Total_TOTAL B_LAG_12'] = df['Consumo Total_TOTAL B'].shift(12)
+    df['Importacion Total_TOTAL  B_LAG_12'] = df['Importacion Total_TOTAL  B'].shift(12)
+    df['Exportacion Total_TOTAL MONDIAL WORLD_LAG_12'] = df['Exportacion Total_TOTAL MONDIAL WORLD'].shift(12)
+    df['Exportacion Total_TOTAL A_LAG_12'] = df['Exportacion Total_TOTAL A'].shift(12)
+    df['Exportacion UE_TOTAL  A)_LAG_12'] = df['Exportacion UE_TOTAL  A)'].shift(12)
+    df['Exportacion UE_TOTAL A + B_LAG_12'] = df['Exportacion UE_TOTAL A + B'].shift(12)
+    df['Exportacion UE_TOTAL B)_LAG_12'] = df['Exportacion UE_TOTAL B)'].shift(12)
+    df['Consumo Total_TOTAL MONDIAL WORLD_LAG_12'] = df['Consumo Total_TOTAL MONDIAL WORLD'].shift(12)
 

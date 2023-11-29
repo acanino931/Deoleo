@@ -65,6 +65,7 @@ if 'DATE' in df_month_trans.columns:
 df_month = df_month_trans.copy()
 df_month['IMPORTS_LAG_9'] = df_month['IMPORTS'].shift(9)
 df_month['EXPORTS_LAG_12'] = df_month['EXPORTS'].shift(12)
+
 df_month.columns
 
 df_inflaction = pd.read_excel("Datos/inflacion_mensual.xls",sheet_name="Sheet1")

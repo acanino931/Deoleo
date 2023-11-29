@@ -6,6 +6,8 @@ from src import importing_data as imd
 
 def semiautomatic_adding_feature (df, all_columns:list, model_columns:list , target_variable: str = 'VIRGEN_EXTRA_EUR_kg'):
     # this funtion prints all the valuable (significative) added variables for a specific model already built
+    # and appended to a list the variables names that are significative.
+    # It is called semiautomatic because it show the additional variable to add, it has to be added manually and then call again the function.
     y = df[[target_variable]].copy()
     ls_significative = []
     for var in all_columns:
@@ -27,9 +29,11 @@ def semiautomatic_adding_feature (df, all_columns:list, model_columns:list , tar
     return ls_significative
 
 
-
-
 def stepwise_eliminating(df, target_variable, iterations):
+    # this function removes at every iteration the variable with the biggest p square,
+    # return u a df with all the var included in the model the p squares the R squared of evry iteration
+    ## IMPORTANT: still there are no controls over the constant terms, tha's to say that the model could go in a loop
+    # trying to remove a constant that it will add later, as well it has no combination ,mechanism so it returns u the same value
     ls_to_del = []
     data = []  # Initialize an empty list to collect dictionaries
 
@@ -101,7 +105,7 @@ def stepwise_regression_OLD(X, y, n_vars: int = 4):
             pvals = model.pvalues[1:].sort_values(ascending=False)
             break
     if len(included) == 0:
-        included = ['EXIS_INIC', 'IMPORTS', 'EXPORTS', 'INNER_CONS', 'PRODUCTION', 'PRODUCTION_HARVEST','INTERNAL_DEMAND','TOTAL_DEMAND','TOTAL_CONS']
+        included = ['EXIS_INIC', 'IMPORTS', 'EXPORTS',  'PRODUCTION_HARVEST','TOTAL_DEMAND','TOTAL_CONS']
     elif len(included) > (n_vars):
         vars_to_rmv = len(included) - n_vars
         included = list(pvals.index[vars_to_rmv:])
@@ -113,51 +117,50 @@ def stepwise_regression_OLD(X, y, n_vars: int = 4):
 
 def semimanual_single_regressions(df,  all_columns : list ,target_var: str = 'VIRGEN_EXTRA_EUR_kg'):
     # from a list of vaiables that function returns the sorted df of all the single regression parameters
-    #use that function to analyze sigificativitiy for each variable in single regression and magnitude co correlations:
+    #use that function to analyze sigificativitiy for each variable in single regression and magnitude of correlations:
 
     results_list = []
 
     X_list = all_columns
 
-
-    target_var = 'VIRGEN_EXTRA_EUR_kg'
     y = df[[target_var]]
 
     # custom loop for the pdf variables
     for i in range(len(X_list)):
-        X_var = X_list[i]
+        if i != target_var:
+            X_var = X_list[i]
 
-        if 'Produccion' in X_var:
-            group = 'Production'
-        elif 'Exportacion' in  X_var:
-            group = 'Export'
-        elif 'Importacion' in  X_var :
-            group = 'Import'
-        elif 'Consumo' in  X_var :
-            group = 'Consume'
-        else:
-            group = 'Other'
+            if 'Produccion' in X_var:
+                group = 'Production'
+            elif 'Exportacion' in  X_var:
+                group = 'Export'
+            elif 'Importacion' in  X_var :
+                group = 'Import'
+            elif 'Consumo' in  X_var :
+                group = 'Consume'
+            else:
+                group = 'Other'
 
-        # Add a constant term to the independent variables
-        X_var_running = df[[X_var]]
-        X_var_running = sm.add_constant(X_var_running)
+            # Add a constant term to the independent variables
+            X_var_running = df[[X_var]]
+            X_var_running = sm.add_constant(X_var_running)
 
-        # Fit the OLS regression model
-        model = sm.OLS(y, X_var_running).fit()
+            # Fit the OLS regression model
+            model = sm.OLS(y, X_var_running).fit()
 
-        # Get R-squared and p-values of coefficients
-        r_squared = model.rsquared
-        p_values = model.pvalues.drop('const')  # Drop the constant term
-        p_value = p_values.to_dict().values()
-        p_value = list(p_value)[0]
+            # Get R-squared and p-values of coefficients
+            r_squared = model.rsquared
+            p_values = model.pvalues.drop('const')  # Drop the constant term
+            p_value = p_values.to_dict().values()
+            p_value = list(p_value)[0]
 
-        # Store the results in the list
-        results_list.append({
-            'X_var': X_var,
-            'R_squared': r_squared,
-            'P_Value': p_value,
-            'Group': group
-        })
+            # Store the results in the list
+            results_list.append({
+                'X_var': X_var,
+                'R_squared': r_squared,
+                'P_Value': p_value,
+                'Group': group
+            })
 
     # Create the DataFrame from the list of dictionaries
     results_df = pd.DataFrame(results_list)

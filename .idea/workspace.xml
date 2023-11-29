@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="var_pdf_selected">
-      <change afterPath="$PROJECT_DIR$/src/Feature_selection.py" afterDir="false" />
+    <list default="true" id="a83aa709-c5dc-429c-af0f-f188d83675cb" name="Changes" comment="feature selection tidy module added">
+      <change afterPath="$PROJECT_DIR$/Meteo_including.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Basic_Model_22Nov.py" beforeDir="false" afterPath="$PROJECT_DIR$/Basic_Model_22Nov.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Basic_model23Nov.py" beforeDir="false" afterPath="$PROJECT_DIR$/Basic_model23Nov.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Basic_model_24Nov.py" beforeDir="false" afterPath="$PROJECT_DIR$/Basic_model_24Nov.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/Output/Excel/df_month.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Feature_selection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Feature_selection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Regression_Functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Regression_Functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/aux_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/aux_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/graphic_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/importing_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/importing_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,20 +40,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/acanino/PycharmProjects/Deoleo/Basic_Model_22Nov.py",
-    "settings.editor.selected.configurable": "preferences.keymap"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/acanino/PycharmProjects/Deoleo/Basic_Model_22Nov.py&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "Python",
-      "GitIgnore"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Python&quot;,
+      &quot;GitIgnore&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings>
@@ -360,7 +363,14 @@
       <option name="project" value="LOCAL" />
       <updated>1700769025483</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="feature selection tidy module added">
+      <created>1701083742790</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1701083742790</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -407,7 +417,8 @@
     <MESSAGE value="yearly correlation with shifts added" />
     <MESSAGE value="Meteo Var stats added" />
     <MESSAGE value="var_pdf_selected" />
-    <option name="LAST_COMMIT_MESSAGE" value="var_pdf_selected" />
+    <MESSAGE value="feature selection tidy module added" />
+    <option name="LAST_COMMIT_MESSAGE" value="feature selection tidy module added" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -439,7 +450,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/Regression_Functions.py</url>
-          <line>182</line>
+          <line>183</line>
           <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -463,13 +474,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Basic_Model_22Nov.py</url>
-          <line>239</line>
+          <line>295</line>
           <option name="timeStamp" value="53" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/Feature_selection.py</url>
-          <line>8</line>
-          <option name="timeStamp" value="54" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
